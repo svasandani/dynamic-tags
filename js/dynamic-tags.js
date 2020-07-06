@@ -16,7 +16,7 @@ class DynamicTagController {
 
       -- input behavior --
       filterInputClass: defines what class to assign to the filter input, if filterSelectionMethod is set to "input", defaults to "filter-input"
-      filterInputPlaceholder: defines what test to use as the placeholder, if filterSelectionMethod is set to "input", defaults to "Filter by tags:"
+      filterInputPlaceholder: defines what text to use as the placeholder, if filterSelectionMethod is set to "input", defaults to "Filter by tags:"
       useAutocomplete: defines whether to show an autocomplete box under the filter input, if filterSelectionMethod is set to "input", defaults to "true"
       autocompleteClass: defines what class to assign to the autcomplete box, if filterSelectionMethod is set to "input" and autocomplete is set to true, defaults to "filter-input"
 
@@ -31,6 +31,7 @@ class DynamicTagController {
 
       - implement input method
       - add more param options (input placeholder, autocomplete style tags, optional style classes?, ???)
+
   */
 
   constructor(params) {
@@ -168,7 +169,10 @@ class DynamicTagController {
     let el = this.filter.querySelector("." + this.filterInputClass);
     el.dataset.empty = "true"
     el.innerHTML = this.filterInputPlaceholder;
-    if (this.useAutocomplete == "true") this.filter.removeChild(this.filter.querySelector("." + this.autocompleteClass));
+    if (this.useAutocomplete == "true") {
+      let autocomplete = this.filter.querySelector("." + this.autocompleteClass);
+      if (autocomplete != null) this.filter.removeChild(autocomplete);
+    }
   }
 
   populateAutocomplete(el) {
