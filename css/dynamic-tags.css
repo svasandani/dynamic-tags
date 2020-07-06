@@ -1,0 +1,96 @@
+:root {
+  --pastel-orange: #efad8d;
+  --orange: #8f4d1d;
+  --pastel-green: #8dcf8d;
+  --green: #1d6f1d;
+  --pastel-blue: #7dadef;
+  --blue: #113d7f;
+  --gray1: #efefef;
+  --gray2: #cfcfcf;
+  --gray3: #afafaf;
+  --tag-color: var(--pastel-orange);
+  --tag-shadow-color: var(--orange);
+  --active-tag-color: var(--orange);
+  --active-tag-shadow-color: var(--orange);
+  --container-color: var(--gray1);
+  --card-color: var(--gray2);
+  --filter-color: var(--gray2);
+  --filter-input-color: var(--gray1);
+  --filter-input-focus-color: var(--gray2);
+  --autocomplete-color: var(--gray3);
+}
+
+.filter {
+  z-index: 1;
+  padding: 2rem;
+  height: auto;
+  position: relative;
+  top: 0;
+  background: var(--filter-color);
+  border-radius: 15px;
+}
+
+.filter .tag {
+  margin-right: 5px;
+}
+
+.filter-input {
+  display: inline-block;
+  padding: 0.75em;
+  background: var(--filter-input-color);
+  width: 100%;
+  margin-right: 5px;
+  margin-bottom: 0.5em;
+  border-radius: 15px;
+}
+
+.filter-input:focus {
+  outline: none;
+  background: var(--filter-input-focus-color);
+}
+
+.autocomplete {
+  width: 100%;
+  min-height: 2em;
+  background: var(--autocomplete-color);
+  padding: 0.75em;
+  margin-bottom: 0.5em;
+  border-radius: 15px;
+}
+
+.container {
+  display: flex;
+  flex-flow: column nowrap;
+  padding: 2rem;
+  background: var(--container-color);
+  border-radius: 15px;
+}
+
+.card {
+  padding: 2rem;
+  background: var(--card-color);
+  border-radius: 15px;
+  margin-bottom: 15px;
+}
+
+.tag {
+  display: inline-block;
+  margin-bottom: 0.5em;
+  padding: 0.6em;
+  border-radius: 5px;
+  background: var(--tag-color);
+  box-shadow: 0 5px var(--tag-shadow-color);
+  transition: 0.08s linear;
+}
+
+.tag:hover {
+  cursor: pointer;
+  box-shadow: 0 7px var(--tag-shadow-color);
+  transition: 0.08s linear;
+}
+
+.tag.active {
+  background: var(--active-tag-color);
+  --tag-shadow-color: var(--active-tag-shadow-color);
+  color: white;
+}
