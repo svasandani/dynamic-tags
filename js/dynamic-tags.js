@@ -26,29 +26,38 @@ class DynamicTagController {
       noResultType: defines what type of element to use as the no result error, defaults to "h4"
       noResultText: defines custom text for no result error, defaults to "Sorry, nothing matches your filters."
 
+      -- styling --
+      useDefaultStyling: determines whether to use dynamic-tags' default styling, defaults to "false"
+      styling: hash of styling parameters, see DynamicTagStyler for options
+
   */
 
   constructor(params) {
-    this.containerClass = params["container"] != null ? params["container"] : "container";
-    this.filterClass = params["filter"] != null ? params["filter"] : "filter";
-    this.cardClass = params["card"] != null ? params["card"] : "card";
-    this.tagClass = params["tag"] != null ? params["tag"] : "tag";
+    this.containerClass = params.container || "container";
+    this.filterClass = params.filter || "filter";
+    this.cardClass = params.card || "card";
+    this.tagClass = params.tag || "tag";
 
-    this.useDataset = params["useDataset"] != null;
-    this.dataTag = params["dataTag"] != null ? params["dataTag"] : "tag";
-    this.filterSelectionMethod = params["filterSelectionMethod"] != null ? params["filterSelectionMethod"] : "list";
-    this.filterTagType = params["filterTagType"] != null ? params["filterTagType"] : "span";
-    this.activeTagClass = params["activeTagClass"] != null ? params["activeTagClass"] : "active";
-    this.selectorExclusivity = params["selectorExclusivity"] != null ? params["selectorExclusivity"] : "union";
+    this.useDataset = params.useDataset != null;
+    this.dataTag = params.dataTag || "tag";
+    this.filterSelectionMethod = params["filterSelectionMethod"] || "list";
+    this.filterTagType = params.filterTagType || "span";
+    this.activeTagClass = params.activeTagClass || "active";
+    this.selectorExclusivity = params["selectorExclusivity"] || "union";
 
-    this.filterInputClass = params["filterInputClass"] != null ? params["filterInputClass"] : "filter-input";
-    this.filterInputPlaceholder = params["filterInputPlaceholder"] != null ? params["filterInputPlaceholder"] : "Filter by tags:";
-    this.useAutocomplete = params["useAutocomplete"] != null ? params["useAutocomplete"] : "true";
-    this.autocompleteClass = params["autocompleteClass"] != null ? params["autocompleteClass"] : "autocomplete";
+    this.filterInputClass = params["filterInputClass"] || "filter-input";
+    this.filterInputPlaceholder = params["filterInputPlaceholder"] || "Filter by tags:";
+    this.useAutocomplete = params.useAutocomplete || "true";
+    this.autocompleteClass = params["autocompleteClass"] || "autocomplete";
 
-    this.noResultError = params["noResultError"] == "false" ? false : true;
-    this.noResult = this.noResultError ? document.createElement(params["noResultType"] != null ? params["noResultType"] : "h4") : "";
-    if (this.noResultError) this.noResult.appendChild(params["noResultText"] != null ? document.createTextNode(params["noResultText"]) : document.createTextNode("Sorry, nothing matches your filters."));
+    this.noResultError = params.noResultError == "false" ? false : true;
+    this.noResult = this.noResultError ? document.createElement(params.noResultType != null ? params.noResultType : "h4") : "";
+    if (this.noResultError) this.noResult.appendChild(params.noResultText != null ? document.createTextNode(params["noResultText"]) : document.createTextNode("Sorry, nothing matches your filters."));
+
+    /* STYLING */
+    if (params["useDefaultStyling"] == "true") {
+      let dts = new DynamicTagStyler(params);
+    }
 
     this.filter = document.querySelector(this.classListToSelector(this.filterClass));
     this.container = document.querySelector(this.classListToSelector(this.containerClass));
@@ -183,7 +192,7 @@ class DynamicTagController {
     el.innerHTML = this.filterInputPlaceholder;
     if (this.useAutocomplete == "true") {
       let autocomplete = this.filter.querySelector(this.classListToSelector(this.autocompleteClass));
-      if (autocomplete != null) this.filter.removeChild(autocomplete);
+      if (autocomplete) this.filter.removeChild(autocomplete);
     }
   }
 
@@ -191,7 +200,7 @@ class DynamicTagController {
     let searches = this.allTags.filter(tag => tag.toLowerCase().includes(el.innerHTML.toLowerCase()));
 
     let autocomplete = this.filter.querySelector(this.classListToSelector(this.autocompleteClass));
-    if (autocomplete != null) {
+    if (autocomplete) {
       autocomplete.innerHTML = "";
 
       searches.forEach(search => {
@@ -295,5 +304,103 @@ class DynamicTagController {
     this.filterElements();
     this.updateElements();
     this.updateTagActive();
+  }
+}
+
+class DynamicTagStyler {
+  /*  PARAMS
+
+      cssPath: determines where the dynamic-tags.css file is located, defaults to "dynamic-tags.css"
+      baseTheme: determines whether to use orange, blue, or green theme, defaults to "orange"
+      colors {
+        containerColor: custom color for container, defaults to "#efefef"
+        cardColor: custom color for cards, defaults to "#cfcfcf"
+        tagColor: custom color for tags, default depends on baseTheme
+        tagShadowColor: custom color for tag shadows, default depends on baseTheme
+        activeTagColor: custom color for active tags, default depends on baseTheme
+        activeTagShadowColor: custom color for active tag shadows, default depends on baseTheme
+        filterInputColor: custom color for filter input, if filterSelectionMethod is set to "input", defaults to "#efefef"
+        filterInputFocusColor: custom color for filter input when focused, if filterSelectionMethod is set to "input", defaults to "#cfcfcf"
+        autocompleteColor: custom color for filter autocomplete, if filterSelectionMethod is set to "input" and useAutocomplete is set to "true", defaults to "#cfcfcf"
+      }
+      filter {
+        stickyFilter: determines whether to make the filter position sticky, defaults to "false"
+        top: determines the top offset of the filter position, defaults to "0"
+      }
+
+  */
+  constructor(params) {
+    let styling = params.styling;
+    this.cssPath = styling.cssPath || "dynamic-tags.css";
+    let el = this.createLinkTag(this.cssPath);
+
+    window.addEventListener('load', () => {
+      this.modifyStyleSheet(params, el)
+    });
+  }
+
+  classListToSelector(classList) {
+    let selector = "";
+    classList.split(" ").forEach(className => {
+      if (this.selectorExclusivity == "intersection") selector += "." + className;
+      else selector += "." + className + ", ";
+    });
+
+    if (this.selectorExclusivity != "intersection") selector = selector.substring(0, selector.length - 2);
+
+    return selector;
+  }
+
+  createLinkTag(cssPath) {
+    let el = document.createElement("link");
+    el.rel = "stylesheet";
+    el.type = "text/css";
+    el.href = cssPath;
+    document.head.prepend(el);
+
+    return el;
+  }
+
+  modifyStyleSheet(params, el) {
+    let styling = params.styling;
+    let stylesheet = el.sheet;
+
+    if (styling.baseTheme == "blue") {
+      stylesheet.insertRule(":root { --tag-color: var(--pastel-blue); }", 1);
+      stylesheet.insertRule(":root { --tag-shadow-color: var(--blue); }", 1);
+      stylesheet.insertRule(":root { --active-tag-color: var(--blue); }", 1);
+      stylesheet.insertRule(":root { --active-tag-shadow-color: var(--blue); }", 1);
+    } else if (styling.baseTheme == "green") {
+      stylesheet.insertRule(":root { --tag-color: var(--pastel-green); }", 1);
+      stylesheet.insertRule(":root { --tag-shadow-color: var(--green); }", 1);
+      stylesheet.insertRule(":root { --active-tag-color: var(--green); }", 1);
+      stylesheet.insertRule(":root { --active-tag-shadow-color: var(--green); }", 1);
+    } else {
+      stylesheet.insertRule(":root { --tag-color: var(--pastel-orange); }", 1);
+      stylesheet.insertRule(":root { --tag-shadow-color: var(--orange); }", 1);
+      stylesheet.insertRule(":root { --active-tag-color: var(--orange); }", 1);
+      stylesheet.insertRule(":root { --active-tag-shadow-color: var(--orange); }", 1);
+
+    }
+
+    let filter = styling.filter;
+    if (filter) {
+      if (filter.stickyFilter == "true") stylesheet.insertRule(this.classListToSelector(params.filterSelector || "filter") + "{ position: sticky }", stylesheet.cssRules.length - 1);
+      if (filter.top) stylesheet.insertRule(this.classListToSelector(params.filterSelector || "filter") + "{ top: " + filter.top + " }", stylesheet.cssRules.length - 1);
+    }
+
+    let colors = styling.colors;
+    if (colors) {
+      if (colors.containerColor) stylesheet.insertRule(":root { --container-color: " + colors.containerColor + "; }", 5);
+      if (colors.cardColor) stylesheet.insertRule(":root { --card-color: " + colors.cardColor + "; }", 5);
+      if (colors.tagColor) stylesheet.insertRule(":root { --tag-color: " + colors.tagColor + "; }", 5);
+      if (colors.tagShadowColor) stylesheet.insertRule(":root { --tag-shadow-color: " + colors.tagShadowColor + "; }", 5);
+      if (colors.activeTagColor) stylesheet.insertRule(":root { --active-tag-color: " + colors.activeTagColor + "; }", 5);
+      if (colors.activeTagShadowColor) stylesheet.insertRule(":root { --active-tag-shadow-color: " + colors.activeTagShadowColor + "; }", 5);
+      if (colors.filterInputColor) stylesheet.insertRule(":root { --filter-input-color: " + colors.filterInputColor + "; }", 5);
+      if (colors.filterInputFocusColor) stylesheet.insertRule(":root { --filter-input-focus-color: " + colors.filterInputFocusColor + "; }", 5);
+      if (colors.autocompleteColor) stylesheet.insertRule(":root { --autocomplete-color: " + colors.autocompleteColor + "; }", 5);
+    }
+
   }
 }
