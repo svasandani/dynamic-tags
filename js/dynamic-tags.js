@@ -27,13 +27,6 @@ class DynamicTagController {
       noResultText: defines custom text for no result error, defaults to "Sorry, nothing matches your filters."
 
   */
-  /*
-      ROADMAP:
-
-      - implement input method
-      - add more param options (input placeholder, autocomplete style tags, optional style classes?, ???)
-
-  */
 
   constructor(params) {
     this.containerClass = params["container"] != null ? params["container"] : "container";
