@@ -18,8 +18,10 @@ class DynamicTagController {
       -- input behavior --
       filterInputClass: defines what class to assign to the filter input, if filterSelectionMethod is set to "input", defaults to "filter-input"
       filterInputPlaceholder: defines what text to use as the placeholder, if filterSelectionMethod is set to "input", defaults to "Filter by tags:"
-      useAutocomplete: defines whether to show an autocomplete box under the filter input, if filterSelectionMethod is set to "input", defaults to "true"
-      autocompleteClass: defines what class to assign to the autcomplete box, if filterSelectionMethod is set to "input" and autocomplete is set to true, defaults to "filter-input"
+      useAutocomplete: defines whether to autocomplete on Tab in the filter input, if filterSelectionMethod is set to "input", defaults to "true"
+      autocompleteClass: defines what class to assign to the autocomplete element, if filterSelectionMethod is set to "input" and useAutocomplete is set to true, defaults to "autocomplete"
+      useSearchBox: defines whether to show a search box under the filter input, if filterSelectionMethod is set to "input", defaults to "true"
+      searchBoxClass: defines what class to assign to the search box, if filterSelectionMethod is set to "input" and useSearchBox is set to true, defaults to "search-box"
 
       -- no result behavior --
       noResultError: defined whether to show an error when no result, defaults to true
@@ -48,7 +50,9 @@ class DynamicTagController {
     this.filterInputClass = params["filterInputClass"] || "filter-input";
     this.filterInputPlaceholder = params["filterInputPlaceholder"] || "Filter by tags:";
     this.useAutocomplete = params.useAutocomplete || "true";
+    this.useSearchBox = params.useSearchBox || "true";
     this.autocompleteClass = params["autocompleteClass"] || "autocomplete";
+    this.searchBoxClass = params["searchBoxClass"] || "search-box";
 
     this.noResultError = params.noResultError == "false" ? false : true;
     this.noResult = this.noResultError ? document.createElement(params.noResultType != null ? params.noResultType : "h4") : "";
@@ -143,35 +147,113 @@ class DynamicTagController {
   }
 
   filterInputListener(e, el, method) {
+    if (e.repeat) e.preventDefault();
+
     if (el.dataset.empty == "true" && e.keyCode == 8) e.preventDefault();
 
     if (method == "keydown" && el.dataset.empty == "true" && e.keyCode != 8) {
       el.innerHTML = "";
       el.dataset.empty = false;
-      if (this.useAutocomplete == "true") {
-        let autocomplete = document.createElement("div");
-        this.autocompleteClass.split(" ").forEach(autocompleteClass => {
-          autocomplete.classList.add(autocompleteClass);
+      if (this.useSearchBox == "true") {
+        let searchBox = document.createElement("div");
+        this.searchBoxClass.split(" ").forEach(searchBoxClass => {
+          searchBox.classList.add(searchBoxClass);
         });
-        el.after(autocomplete);
+        el.after(searchBox);
       }
     } else if (method == "keyup" && el.innerHTML == "" && el.dataset.empty == "false") {
       el.dataset.empty = "true"
       el.innerHTML = this.filterInputPlaceholder;
-      if (this.useAutocomplete == "true") this.filter.removeChild(this.filter.querySelector(this.classListToSelector(this.autocompleteClass)));
-    }
-
-    if (e.keyCode == 13) {
+      if (this.useSearchBox == "true") this.filter.removeChild(this.filter.querySelector(this.classListToSelector(this.searchBoxClass)));
+    } else if (method == "keyup" && e.keyCode == 8) {
+      let remaining = document.querySelector(this.classListToSelector(this.autocompleteClass));
+      if (remaining) remaining.remove();
+    } else if (e.keyCode == 9) {
       e.preventDefault();
-      let tag = el.innerHTML;
-      if (method == "keyup" && this.allTags.includes(tag)) {
-        this.toggleTag(tag);
+      if (this.useAutocomplete == "true" && method == "keyup") this.fillAutocomplete(el);
+    } else if (e.keyCode == 13) {
+      e.preventDefault();
+      let tag = el.childNodes[0].data;
+      let normalizedTag = this.nonStrictTagSearch(tag);
+      if (method == "keyup" && normalizedTag) {
+        this.toggleTag(normalizedTag);
       } else if (method == "keyup") {
         el.style.color = "red";
       }
     } else if (method == "keyup") {
+      if (this.useSearchBox == "true") this.populateSearchBox(el);
       if (this.useAutocomplete == "true") this.populateAutocomplete(el);
     }
+  }
+
+  getAutocompleteResult(el) {
+    let searchText = el.childNodes[0].data;
+    let searches = this.allTags.filter(tag => tag.toLowerCase().startsWith(searchText.toLowerCase()));
+
+    let primary = searches[0] || "";
+
+    return [primary.substring(0, searchText.length), primary.slice(searchText.length, primary.length)];
+  }
+
+  fillAutocomplete(el) {
+    let remaining = document.querySelector(this.classListToSelector(this.autocompleteClass));
+    let result = "";
+    this.getAutocompleteResult(el).forEach(piece => {
+      result += piece;
+    });
+    if (result != "") el.innerHTML = result;
+
+    let range = document.createRange();
+    let sel = window.getSelection();
+    range.setStart(el.childNodes[0], el.childNodes[0].data.length);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    if (remaining) remaining.remove();
+  }
+
+  populateAutocomplete(el) {
+    let remainingText = this.getAutocompleteResult(el)[1];
+    let remaining = document.querySelector(this.classListToSelector(this.autocompleteClass));
+    if (remaining) {
+      remaining.innerHTML = remainingText;
+      el.append(remaining);
+
+      let range = document.createRange();
+      let sel = window.getSelection();
+      range.setStart(el.childNodes[1], 0);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else {
+      remaining = document.createElement("span");
+      this.autocompleteClass.split(" ").forEach(autocompleteClass => {
+        remaining.classList.add(autocompleteClass);
+      });
+
+      remaining.appendChild(document.createTextNode(remainingText));
+      el.append(remaining);
+
+      let range = document.createRange();
+      let sel = window.getSelection();
+      range.setStart(el.childNodes[1], 0);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
+
+  nonStrictTagSearch(searchTag) {
+    let lowercase = searchTag.toLowerCase();
+    let toReturn = null;
+    this.allTags.forEach((tag) => {
+      if (tag.toLowerCase() == lowercase) {
+        toReturn = tag;
+      }
+    });
+
+    return toReturn;
   }
 
   classListToSelector(classList) {
@@ -190,21 +272,21 @@ class DynamicTagController {
     let el = this.filter.querySelector(this.classListToSelector(this.filterInputClass));
     el.dataset.empty = "true"
     el.innerHTML = this.filterInputPlaceholder;
-    if (this.useAutocomplete == "true") {
-      let autocomplete = this.filter.querySelector(this.classListToSelector(this.autocompleteClass));
+    if (this.useSearchBox == "true") {
+      let autocomplete = this.filter.querySelector(this.classListToSelector(this.searchBoxClass));
       if (autocomplete) this.filter.removeChild(autocomplete);
     }
   }
 
-  populateAutocomplete(el) {
-    let searches = this.allTags.filter(tag => tag.toLowerCase().includes(el.innerHTML.toLowerCase()));
+  populateSearchBox(el) {
+    let searches = this.allTags.filter(tag => tag.toLowerCase().includes(el.childNodes[0].data.toLowerCase()));
 
-    let autocomplete = this.filter.querySelector(this.classListToSelector(this.autocompleteClass));
-    if (autocomplete) {
-      autocomplete.innerHTML = "";
+    let searchBox = this.filter.querySelector(this.classListToSelector(this.searchBoxClass));
+    if (searchBox) {
+      searchBox.innerHTML = "";
 
       searches.forEach(search => {
-        if (!this.tagFilter.includes(search)) this.addTagTo(search, autocomplete, false);
+        if (!this.tagFilter.includes(search)) this.addTagTo(search, searchBox, false);
       });
     }
   }
@@ -321,7 +403,7 @@ class DynamicTagStyler {
         activeTagShadowColor: custom color for active tag shadows, default depends on baseTheme
         filterInputColor: custom color for filter input, if filterSelectionMethod is set to "input", defaults to "#efefef"
         filterInputFocusColor: custom color for filter input when focused, if filterSelectionMethod is set to "input", defaults to "#cfcfcf"
-        autocompleteColor: custom color for filter autocomplete, if filterSelectionMethod is set to "input" and useAutocomplete is set to "true", defaults to "#cfcfcf"
+        searchBoxColor: custom color for filter search box, if filterSelectionMethod is set to "input" and useSearchBox is set to "true", defaults to "#cfcfcf"
       }
       filter {
         stickyFilter: determines whether to make the filter position sticky, defaults to "false"
@@ -334,7 +416,7 @@ class DynamicTagStyler {
     this.cssPath = styling.cssPath || "dynamic-tags.css";
     let el = this.createLinkTag(this.cssPath);
 
-    window.addEventListener('load', () => {
+    el.addEventListener('load', () => {
       this.modifyStyleSheet(params, el)
     });
   }
@@ -399,7 +481,7 @@ class DynamicTagStyler {
       if (colors.activeTagShadowColor) stylesheet.insertRule(":root { --active-tag-shadow-color: " + colors.activeTagShadowColor + "; }", 5);
       if (colors.filterInputColor) stylesheet.insertRule(":root { --filter-input-color: " + colors.filterInputColor + "; }", 5);
       if (colors.filterInputFocusColor) stylesheet.insertRule(":root { --filter-input-focus-color: " + colors.filterInputFocusColor + "; }", 5);
-      if (colors.autocompleteColor) stylesheet.insertRule(":root { --autocomplete-color: " + colors.autocompleteColor + "; }", 5);
+      if (colors.searchBoxColor) stylesheet.insertRule(":root { --search-box-color: " + colors.searchBoxColor + "; }", 5);
     }
 
   }

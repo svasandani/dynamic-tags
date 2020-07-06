@@ -17,6 +17,7 @@
   --filter-color: var(--gray2);
   --filter-input-color: var(--gray1);
   --filter-input-focus-color: var(--gray2);
+  --search-box-color: var(--gray3);
   --autocomplete-color: var(--gray3);
 }
 
@@ -49,13 +50,17 @@
   background: var(--filter-input-focus-color);
 }
 
-.autocomplete {
+.search-box {
   width: 100%;
   min-height: 2em;
-  background: var(--autocomplete-color);
+  background: var(--search-box-color);
   padding: 0.75em;
   margin-bottom: 0.5em;
   border-radius: 15px;
+}
+
+.autocomplete {
+  color: var(--autocomplete-color);
 }
 
 .container {
