@@ -6,6 +6,7 @@ class DynamicTagController {
       filter: CSS selector for the filter, defaults to "filter"
       card: class selector for each card to be filtered, defaults to "card"
       tag: class selector for each tag, defaults to "tag"
+      selectorExclusivity: defines whether to combine all selectors for an object via intersection or union, defaults to "union"
 
       -- config --
       useDataset: set to any value to use "data-X" attribute instead of innerHTML, defaults to false
@@ -45,7 +46,7 @@ class DynamicTagController {
     this.filterSelectionMethod = params["filterSelectionMethod"] != null ? params["filterSelectionMethod"] : "list";
     this.filterTagType = params["filterTagType"] != null ? params["filterTagType"] : "span";
     this.activeTagClass = params["activeTagClass"] != null ? params["activeTagClass"] : "active";
-
+    this.selectorExclusivity = params["selectorExclusivity"] != null ? params["selectorExclusivity"] : "union";
 
     this.filterInputClass = params["filterInputClass"] != null ? params["filterInputClass"] : "filter-input";
     this.filterInputPlaceholder = params["filterInputPlaceholder"] != null ? params["filterInputPlaceholder"] : "Filter by tags:";
@@ -56,9 +57,9 @@ class DynamicTagController {
     this.noResult = this.noResultError ? document.createElement(params["noResultType"] != null ? params["noResultType"] : "h4") : "";
     if (this.noResultError) this.noResult.appendChild(params["noResultText"] != null ? document.createTextNode(params["noResultText"]) : document.createTextNode("Sorry, nothing matches your filters."));
 
-    this.filter = document.querySelector("." + this.filterClass);
-    this.container = document.querySelector("." + this.containerClass);
-    this.allCards = this.container.querySelectorAll("." + this.cardClass) || [];
+    this.filter = document.querySelector(this.classListToSelector(this.filterClass));
+    this.container = document.querySelector(this.classListToSelector(this.containerClass));
+    this.allCards = this.container.querySelectorAll(this.classListToSelector(this.cardClass)) || [];
     this.activeCards = this.allCards;
     this.tagDict = {};
     this.tagFilter = [];
@@ -71,14 +72,14 @@ class DynamicTagController {
   }
 
   refreshElements() {
-    this.allCards = this.container.querySelectorAll("." + this.cardClass) || [];
+    this.allCards = this.container.querySelectorAll(this.classListToSelector(this.cardClass)) || [];
   }
 
   loadTags() {
     this.refreshElements();
 
     this.allCards.forEach(el => {
-      el.querySelectorAll("." + this.tagClass).forEach(tag => {
+      el.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tag => {
         let dataTag = this.getTag(tag);
         if (typeof this.tagDict[dataTag] == "undefined") {
           this.tagDict[dataTag] = [el];
@@ -92,7 +93,9 @@ class DynamicTagController {
       if (this.filterSelectionMethod == "list") {
         let el = document.createElement(this.filterTagType);
         el.appendChild(document.createTextNode(tag));
-        el.classList.add(this.tagClass);
+        this.tagClass.split(" ").forEach(tagClass => {
+          el.classList.add(tagClass);
+        });
         if (this.useDataset) el.setAttribute("data-" + this.dataTag, tag);
         this.filter.append(el);
       } else this.allTags.push(tag);
@@ -104,7 +107,9 @@ class DynamicTagController {
       }
 
       let el = document.createElement("span");
-      el.classList.add(this.filterInputClass);
+      this.filterInputClass.split(" ").forEach(filterInputClass => {
+        el.classList.add(filterInputClass);
+      });
       el.innerHTML = this.filterInputPlaceholder;
       el.dataset.empty = true;
       el.setAttribute("contenteditable", "true");
@@ -122,13 +127,13 @@ class DynamicTagController {
       });
     }
 
-    this.filter.querySelectorAll("." + this.tagClass).forEach(tag => {
+    this.filter.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tag => {
       tag.addEventListener('click', () => {
         this.toggleTag(this.getTag(tag));
       }, false);
     });
 
-    this.container.querySelectorAll("." + this.tagClass).forEach(tag => {
+    this.container.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tag => {
       tag.addEventListener('click', () => {
         this.toggleTag(this.getTag(tag));
       }, false);
@@ -143,13 +148,15 @@ class DynamicTagController {
       el.dataset.empty = false;
       if (this.useAutocomplete == "true") {
         let autocomplete = document.createElement("div");
-        autocomplete.classList.add(this.autocompleteClass);
+        this.autocompleteClass.split(" ").forEach(autocompleteClass => {
+          autocomplete.classList.add(autocompleteClass);
+        });
         el.after(autocomplete);
       }
     } else if (method == "keyup" && el.innerHTML == "" && el.dataset.empty == "false") {
       el.dataset.empty = "true"
       el.innerHTML = this.filterInputPlaceholder;
-      if (this.useAutocomplete == "true") this.filter.removeChild(this.filter.querySelector("." + this.autocompleteClass));
+      if (this.useAutocomplete == "true") this.filter.removeChild(this.filter.querySelector(this.classListToSelector(this.autocompleteClass)));
     }
 
     if (e.keyCode == 13) {
@@ -165,12 +172,24 @@ class DynamicTagController {
     }
   }
 
+  classListToSelector(classList) {
+    let selector = "";
+    classList.split(" ").forEach(className => {
+      if (this.selectorExclusivity == "intersection") selector += "." + className;
+      else selector += "." + className + ", ";
+    });
+
+    if (this.selectorExclusivity != "intersection") selector = selector.substring(0, selector.length - 2);
+
+    return selector;
+  }
+
   resetInput() {
-    let el = this.filter.querySelector("." + this.filterInputClass);
+    let el = this.filter.querySelector(this.classListToSelector(this.filterInputClass));
     el.dataset.empty = "true"
     el.innerHTML = this.filterInputPlaceholder;
     if (this.useAutocomplete == "true") {
-      let autocomplete = this.filter.querySelector("." + this.autocompleteClass);
+      let autocomplete = this.filter.querySelector(this.classListToSelector(this.autocompleteClass));
       if (autocomplete != null) this.filter.removeChild(autocomplete);
     }
   }
@@ -178,7 +197,7 @@ class DynamicTagController {
   populateAutocomplete(el) {
     let searches = this.allTags.filter(tag => tag.toLowerCase().includes(el.innerHTML.toLowerCase()));
 
-    let autocomplete = this.filter.querySelector("." + this.autocompleteClass);
+    let autocomplete = this.filter.querySelector(this.classListToSelector(this.autocompleteClass));
     if (autocomplete != null) {
       autocomplete.innerHTML = "";
 
@@ -191,8 +210,12 @@ class DynamicTagController {
   addTagTo(tag, element, active) {
     let el = document.createElement(this.filterTagType);
     el.appendChild(document.createTextNode(tag));
-    el.classList.add(this.tagClass);
-    if (active) el.classList.add(this.activeTagClass);
+    this.tagClass.split(" ").forEach(tagClass => {
+      el.classList.add(tagClass);
+    });
+    if (active) this.activeTagClass.split(" ").forEach(activeClass => {
+      el.classList.add(activeClass)
+    });
     if (this.useDataset) el.setAttribute("data-" + this.dataTag, tag);
     el.addEventListener('click', () => {
       this.toggleTag(this.getTag(el));
@@ -208,9 +231,17 @@ class DynamicTagController {
   }
 
   updateElements() {
+    let notCards = [];
+    let allCards = Array.from(this.allCards);
     while (this.container.childNodes.length > 0) {
-      this.container.removeChild(this.container.lastChild);
+      let el = this.container.lastChild;
+      if (!allCards.includes(el) && el != this.noResult) notCards.push(el);
+      this.container.removeChild(el);
     }
+
+    notCards.forEach(el => {
+      this.container.prepend(el);
+    })
 
     if (this.activeCards.length == 0) {
       this.container.append(this.noResult);
@@ -222,17 +253,21 @@ class DynamicTagController {
   }
 
   updateTagActive() {
-    document.querySelectorAll("." + this.tagClass).forEach(tag => {
+    document.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tag => {
       if (this.tagFilter.includes(this.getTag(tag))) {
-        tag.classList.add(this.activeTagClass);
+        this.activeTagClass.split(" ").forEach(activeClass => {
+          tag.classList.add(activeClass)
+        });
       } else {
-        tag.classList.remove(this.activeTagClass);
+        this.activeTagClass.split(" ").forEach(activeClass => {
+          tag.classList.remove(activeClass)
+        });
       }
     });
   }
 
   removeFromFilter(tag) {
-    this.filter.querySelectorAll("." + this.tagClass).forEach(tagEl => {
+    this.filter.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tagEl => {
       if (this.useDataset) {
         if (tagEl.getAttribute("data-" + this.dataTag) == tag) this.filter.removeChild(tagEl);
       } else {
