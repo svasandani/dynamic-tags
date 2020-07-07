@@ -122,15 +122,15 @@ class DynamicTagController {
       this.filter.append(el);
 
       el.addEventListener('keydown', (e) => {
+        this.removeLineBreaks(el);
         el.style.removeProperty("color");
         e = e || window.event;
         this.filterInputListener(e, el, 'keydown');
       });
 
       el.addEventListener('keyup', (e) => {
-        this.removeLineBreaks(el);
         e = e || window.event;
-        this.filterInputListener(e, el, 'keyup');
+        e.preventDefault();
       });
     }
 
@@ -154,12 +154,17 @@ class DynamicTagController {
   }
 
   filterInputListener(e, el, method) {
-    if (e.repeat) e.preventDefault();
+    let key = event.key;
+    key = key.replace(/[^\x20-\x7E]/g, '');
+
+    if (e.repeat && e.keyCode != 8) e.preventDefault();
 
     if (el.dataset.empty == "true" && e.keyCode == 8) e.preventDefault();
 
-    if (method == "keydown" && el.dataset.empty == "true" && e.keyCode != 8) {
-      el.innerHTML = "";
+    if (el.dataset.empty == "true" && key.length > 0 && key.length <= 1) {
+      e.preventDefault();
+      el.innerHTML = key;
+      this.setCursor(el);
       el.dataset.empty = false;
       if (this.useSearchBox == "true") {
         let searchBox = document.createElement("div");
@@ -167,37 +172,65 @@ class DynamicTagController {
           searchBox.classList.add(searchBoxClass);
         });
         el.after(searchBox);
+        this.populateSearchBox(el);
       }
-    } else if (method == "keyup" && el.innerHTML == "" && el.dataset.empty == "false") {
+      if (this.useAutocomplete == "true") this.populateAutocomplete(el);
+    } else if (el.childNodes[0].data.length <= 1 && el.dataset.empty == "false" && e.keyCode == 8) {
+      e.preventDefault();
       el.dataset.empty = "true"
-      el.innerHTML = this.filterInputPlaceholder;
+      el.childNodes[0].data = this.filterInputPlaceholder;
       if (this.useSearchBox == "true") this.filter.removeChild(this.filter.querySelector(this.classListToSelector(this.searchBoxClass)));
-    } else if (method == "keyup" && e.keyCode == 8) {
-      let remaining = document.querySelector(this.classListToSelector(this.autocompleteClass));
-      if (remaining) remaining.remove();
+      if (this.useAutocomplete == "true") el.removeChild(this.filter.querySelector(this.classListToSelector(this.autocompleteClass)));
+    } else if (e.keyCode == 8 && el.dataset.empty == "false") {
+      e.preventDefault();
+      el.childNodes[0].data = el.childNodes[0].data.substring(0, el.childNodes[0].data.length - 1);
+      this.setCursor(el);
+      if (this.useSearchBox == "true") this.populateSearchBox(el);
+      if (this.useAutocomplete == "true") this.populateAutocomplete(el);
     } else if (e.keyCode == 9) {
       e.preventDefault();
-      if (this.useAutocomplete == "true" && method == "keyup") this.fillAutocomplete(el);
+      if (this.useAutocomplete == "true") this.fillAutocomplete(el);
     } else if (e.keyCode == 13) {
       e.preventDefault();
       let tag = el.childNodes[0].data;
       let normalizedTag = this.nonStrictTagSearch(tag);
-      if (method == "keyup" && normalizedTag) {
+      if (normalizedTag) {
         this.toggleTag(normalizedTag);
       } else if (method == "keyup") {
         el.style.color = "red";
       }
-    } else if (method == "keyup") {
+    } else if (key.length <= 1) {
+      e.preventDefault();
+      el.childNodes[0].data += key;
+
+      this.setCursor(el);
+
       if (this.useSearchBox == "true") this.populateSearchBox(el);
       if (this.useAutocomplete == "true") this.populateAutocomplete(el);
     }
+  }
+
+  setCursor(el) {
+    let range = document.createRange();
+    let sel = window.getSelection();
+    range.setStart(el.childNodes[0], el.childNodes[0].data.length);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
   }
 
   getAutocompleteResult(el) {
     let searchText = el.childNodes[0].data;
     let searches = this.allTags.filter(tag => tag.toLowerCase().startsWith(searchText.toLowerCase()));
 
-    let primary = searches[0] || "";
+    let primary = "";
+
+    for (let i = 0; i < searches.length; i++) {
+      if (!this.tagFilter.includes(searches[i])) {
+        primary = searches[i];
+        break;
+      }
+    }
 
     return [primary.substring(0, searchText.length), primary.slice(searchText.length, primary.length)];
   }
@@ -210,12 +243,7 @@ class DynamicTagController {
     });
     if (result != "") el.innerHTML = result;
 
-    let range = document.createRange();
-    let sel = window.getSelection();
-    range.setStart(el.childNodes[0], el.childNodes[0].data.length);
-    range.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(range);
+    this.setCursor(el);
 
     if (remaining) remaining.remove();
   }
@@ -227,12 +255,7 @@ class DynamicTagController {
       remaining.innerHTML = remainingText;
       el.append(remaining);
 
-      let range = document.createRange();
-      let sel = window.getSelection();
-      range.setStart(el.childNodes[1], 0);
-      range.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(range);
+      this.setCursor(el);
     } else {
       remaining = document.createElement("span");
       this.autocompleteClass.split(" ").forEach(autocompleteClass => {
@@ -242,12 +265,7 @@ class DynamicTagController {
       remaining.appendChild(document.createTextNode(remainingText));
       el.append(remaining);
 
-      let range = document.createRange();
-      let sel = window.getSelection();
-      range.setStart(el.childNodes[1], 0);
-      range.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(range);
+      this.setCursor(el);
     }
   }
 
