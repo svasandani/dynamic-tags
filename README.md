@@ -1,42 +1,20 @@
-<style>
-.corny {
-  font-family: 'Goblin One', serif;
-  font-weight: 400;
-  font-size: 0.88em;
-  display: inline-block;
-  padding: 0.2em 0.7em;
-  border-radius: 0.2em;
-  background: #efad8d;
-  box-shadow: 0 0.2em #8f4d1d;
-  transition: 0.1s linear;
-  color: black;
-  margin-right: 3px;
-}
-
-.corny:hover {
-  cursor: pointer;
-  color:#113d7f;
-  box-shadow: 0 0.25em #8f4d1d;
-  transition: 0.1s linear;
-}
-</style>
-
-<link href="https://fonts.googleapis.com/css2?family=Goblin+One&family=Gotu&family=DM+Mono:wght@300&family=Poppins:wght@300;400&display=swap" rel="stylesheet">
-
 <h1 align="center">
   <a href='https://svasandani.github.io/dynamic-tags'>
     <img src="logo.svg" width="60%" />
   </a>
   <br>
   <br>
+  <img src="https://img.shields.io/github/last-commit/svasandani/dynamic-tags" />
+  <img src="https://img.shields.io/github/languages/code-size/svasandani/dynamic-tags" />
   <a href='https://simple.wikipedia.org/wiki/MIT_License'>
     <img src="https://img.shields.io/badge/license-MIT-lightgrey" />
   </a>
+  <img src="https://img.shields.io/badge/-help--wanted-brightgreen" />
   <br>
   <br>
 </h1>
 <br>
-<p class="corny" style="margin-bottom: 2px">dynamic-tags</p> is a library designed to supercharge your already existing DOM elements. Just assign any unique CSS class to your tags, and we take care of the rest.
+dynamic-tags is a library designed to supercharge your already existing DOM elements. Just assign any unique CSS class to your tags, and we take care of the rest.
 
 ## Demos
 
