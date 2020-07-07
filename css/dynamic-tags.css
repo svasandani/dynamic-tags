@@ -26,7 +26,7 @@
   padding: 2rem;
   height: auto;
   position: relative;
-  top: 0;
+  top: 0px;
   background: var(--filter-color);
   border-radius: 15px;
 }
@@ -98,4 +98,15 @@
   background: var(--active-tag-color);
   --tag-shadow-color: var(--active-tag-shadow-color);
   color: white;
+}
+
+@media (max-width: 1000px) {
+  .filter .tag, .container {
+    font-size: 1.77em;
+  }
+
+  .filter {
+    position: relative;
+    top: 0px;
+  }
 }

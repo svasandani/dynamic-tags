@@ -6,7 +6,6 @@ class DynamicTagController {
       filter: CSS selector for the filter, defaults to "filter"
       card: class selector for each card to be filtered, defaults to "card"
       tag: class selector for each tag, defaults to "tag"
-      selectorExclusivity: defines whether to combine all selectors for an object via intersection or union, defaults to "union"
 
       -- config --
       useDataset: set to any value to use "data-X" attribute instead of innerHTML, defaults to false
@@ -333,11 +332,8 @@ class DynamicTagController {
   classListToSelector(classList) {
     let selector = "";
     classList.split(" ").forEach(className => {
-      if (this.selectorExclusivity == "intersection") selector += "." + className;
-      else selector += "." + className + ", ";
+      selector += "." + className;
     });
-
-    if (this.selectorExclusivity != "intersection") selector = selector.substring(0, selector.length - 2);
 
     return selector;
   }
@@ -480,8 +476,8 @@ class DynamicTagStyler {
         searchBoxColor: custom color for filter search box, if filterSelectionMethod is set to "input" and useSearchBox is set to "true", defaults to "#cfcfcf"
       }
       filter {
-        stickyFilter: determines whether to make the filter position sticky, defaults to "false"
-        top: determines the top offset of the filter position, defaults to "0"
+        stickyFilter: determines whether to make the filter position sticky, defaults to "desktop" (options are "desktop", "mobile", "both", "none")
+        top: determines the top offset of the filter position, defaults to "0" (if one value is passed, it will be used for both desktop and mobile. if an array is passed then it uses the first value for desktop, and the second value for mobile)
       }
 
   */
@@ -489,6 +485,15 @@ class DynamicTagStyler {
     let styling = params.styling;
     this.cssPath = styling.cssPath || "dynamic-tags.css";
     let el = this.createLinkTag(this.cssPath);
+
+    this.containerClass = params.container || "container";
+    this.filterClass = params.filter || "filter";
+    this.cardClass = params.card || "card";
+    this.tagClass = params.tag || "tag";
+    this.activeTagClass = params.activeTagClass || "active";
+    this.filterInputClass = params["filterInputClass"] || "filter-input";
+    this.autocompleteClass = params["autocompleteClass"] || "autocomplete";
+    this.searchBoxClass = params["searchBoxClass"] || "search-box";
 
     el.addEventListener('load', () => {
       this.modifyStyleSheet(params, el)
@@ -498,11 +503,8 @@ class DynamicTagStyler {
   classListToSelector(classList) {
     let selector = "";
     classList.split(" ").forEach(className => {
-      if (this.selectorExclusivity == "intersection") selector += "." + className;
-      else selector += "." + className + ", ";
+      selector += "." + className;
     });
-
-    if (this.selectorExclusivity != "intersection") selector = selector.substring(0, selector.length - 2);
 
     return selector;
   }
@@ -517,9 +519,92 @@ class DynamicTagStyler {
     return el;
   }
 
+  migrateStyleSheet(params, stylesheet) {
+    let filter = params.styling.filter;
+    let rules = stylesheet.cssRules;
+    let length = rules.length;
+    for (let i = 1; i < length; i++) {
+      let rule = rules[i];
+      let text = "";
+      if (rule.selectorText != undefined) {
+        let parts = rule.cssText.split("{");
+        let selector = this.replaceSelectors(parts[0]);
+
+        if (rule.selectorText == ".filter") {
+          if (filter.stickyFilter === "desktop" || filter.stickyFilter === "both") {
+            parts[1] = parts[1].replace("position: relative;", "position: sticky;");
+
+            if (filter.top != null && Array.isArray(filter.top)) {
+              parts[1] = parts[1].replace("top: 0px;", "top: " + filter.top[0] + ";");
+            } else {
+              parts[1] = parts[1].replace("top: 0px;", "top: " + filter.top + ";");
+            }
+          }
+        }
+
+        text = selector + "{" + parts[1];
+      } else {
+        text = this.getMediaCSSText(rule, filter);
+      }
+
+      stylesheet.deleteRule(i);
+      stylesheet.insertRule(text, i);
+    }
+  }
+
+  // pass in media rule, get reconstructed cssText
+  getMediaCSSText(mediaRule, filter) {
+    let rules = mediaRule.cssRules;
+    let cssText = mediaRule.cssText.split("{")[0] + "{ ";
+    let length = rules.length;
+
+    for (let i = 0; i < length; i++) {
+      let rule = rules[i];
+      let text = "";
+      let parts = rule.cssText.split("{");
+      let selector = this.replaceSelectors(parts[0]);
+
+      if (rule.selectorText == ".filter") {
+        if (filter.stickyFilter === "mobile" || filter.stickyFilter === "both") {
+          parts[1] = parts[1].replace("position: relative;", "position: sticky;");
+
+          if (filter.top != null && Array.isArray(filter.top)) {
+            parts[1] = parts[1].replace("top: 0px;", "top: " + filter.top[0] + ";")
+          } else {
+            parts[1] = parts[1].replace("top: 0px;", "top: " + filter.top + ";")
+          }
+        }
+      }
+
+      text = selector + "{" + parts[1];
+
+      cssText += text;
+    }
+    cssText += " }";
+
+    return cssText;
+  }
+
+  replaceSelectors(string) {
+    let output = string;
+
+    output = output.replace(".filter", this.classListToSelector(this.filterClass));
+    output = output.replace(".filter-input", this.classListToSelector(this.filterInputClass));
+    output = output.replace(".search-box", this.classListToSelector(this.searchBoxClass));
+    output = output.replace(".autocomplete", this.classListToSelector(this.autocompleteClass));
+    output = output.replace(".container", this.classListToSelector(this.containerClass));
+    output = output.replace(".card", this.classListToSelector(this.cardClass));
+    output = output.replace(".tag", this.classListToSelector(this.tagClass));
+    output = output.replace(".active", this.classListToSelector(this.activeTagClass));
+
+    return output;
+  }
+
   modifyStyleSheet(params, el) {
     let styling = params.styling;
     let stylesheet = el.sheet;
+
+    this.migrateStyleSheet(params, stylesheet);
 
     if (styling.baseTheme == "blue") {
       stylesheet.insertRule(":root { --tag-color: var(--pastel-blue); }", 1);
@@ -537,12 +622,6 @@ class DynamicTagStyler {
       stylesheet.insertRule(":root { --active-tag-color: var(--orange); }", 1);
       stylesheet.insertRule(":root { --active-tag-shadow-color: var(--orange); }", 1);
 
-    }
-
-    let filter = styling.filter;
-    if (filter) {
-      if (filter.stickyFilter == "true") stylesheet.insertRule(this.classListToSelector(params.filterSelector || "filter") + "{ position: sticky }", stylesheet.cssRules.length - 1);
-      if (filter.top) stylesheet.insertRule(this.classListToSelector(params.filterSelector || "filter") + "{ top: " + filter.top + " }", stylesheet.cssRules.length - 1);
     }
 
     let colors = styling.colors;
