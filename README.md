@@ -6,7 +6,10 @@ A vanilla JS library that dynamically generates tags from your DOM, which you ca
 - [x] implement autocomplete algorithm for input filter
 - [x] add more customizable selectors
 - [x] add optional default css styling
-- [ ] add tab-to-autocomplete feature to input filterSelectionMethod
+- [x] add tab-to-autocomplete feature to input filterSelectionMethod
+- [ ] allow config options for autocomplete/search box
+  - strict matching (both)
+  - match start only (search box)
 - [ ] allow for complicated sub-container structure without breaking functionality
 
 ## Maintainers

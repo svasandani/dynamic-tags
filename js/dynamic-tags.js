@@ -49,8 +49,8 @@ class DynamicTagController {
 
     this.filterInputClass = params["filterInputClass"] || "filter-input";
     this.filterInputPlaceholder = params["filterInputPlaceholder"] || "Filter by tags:";
-    this.useAutocomplete = params.useAutocomplete || "true";
-    this.useSearchBox = params.useSearchBox || "true";
+    this.useAutocomplete = filterSelectionMethod == "input" ? params.useAutocomplete || "true" : "false";
+    this.useSearchBox = filterSelectionMethod == "input" ? params.useSearchBox || "true" : "false";
     this.autocompleteClass = params["autocompleteClass"] || "autocomplete";
     this.searchBoxClass = params["searchBoxClass"] || "search-box";
 
