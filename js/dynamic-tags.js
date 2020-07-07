@@ -49,8 +49,8 @@ class DynamicTagController {
 
     this.filterInputClass = params["filterInputClass"] || "filter-input";
     this.filterInputPlaceholder = params["filterInputPlaceholder"] || "Filter by tags:";
-    this.useAutocomplete = filterSelectionMethod == "input" ? params.useAutocomplete || "true" : "false";
-    this.useSearchBox = filterSelectionMethod == "input" ? params.useSearchBox || "true" : "false";
+    this.useAutocomplete = this.filterSelectionMethod == "input" ? params.useAutocomplete || "true" : "false";
+    this.useSearchBox = this.filterSelectionMethod == "input" ? params.useSearchBox || "true" : "false";
     this.autocompleteClass = params["autocompleteClass"] || "autocomplete";
     this.searchBoxClass = params["searchBoxClass"] || "search-box";
 
@@ -128,6 +128,7 @@ class DynamicTagController {
       });
 
       el.addEventListener('keyup', (e) => {
+        this.removeLineBreaks(el);
         e = e || window.event;
         this.filterInputListener(e, el, 'keyup');
       });
@@ -144,6 +145,12 @@ class DynamicTagController {
         this.toggleTag(this.getTag(tag));
       }, false);
     });
+  }
+
+  removeLineBreaks(el) {
+    for (let i = 0; i < el.childNodes.length; i++) {
+      if (el.childNodes[i].nodeName == "BR") el.removeChild(el.childNodes[i]);
+    }
   }
 
   filterInputListener(e, el, method) {
