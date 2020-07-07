@@ -121,17 +121,34 @@ class DynamicTagController {
       el.setAttribute("contenteditable", "true");
       this.filter.append(el);
 
-      el.addEventListener('keydown', (e) => {
-        this.removeLineBreaks(el);
-        el.style.removeProperty("color");
-        e = e || window.event;
-        this.filterInputListener(e, el, 'keydown');
-      });
+      if (navigator.userAgent.match(/Android/i)) {
+        el.addEventListener('click', () => {
+          el.innerHTML = "";
+        });
 
-      el.addEventListener('keyup', (e) => {
-        e = e || window.event;
-        e.preventDefault();
-      });
+        el.addEventListener('blur', () => {
+          el.innerHTML = this.filterInputPlaceholder;
+        });
+
+        el.addEventListener('input', (e) => {
+          this.removeLineBreaks(el);
+          el.style.removeProperty("color");
+          e = e || window.event;
+          this.android_filterInputListener(e, el);
+        });
+      } else {
+        el.addEventListener('keydown', (e) => {
+          this.removeLineBreaks(el);
+          el.style.removeProperty("color");
+          e = e || window.event;
+          this.filterInputListener(e, el, 'keydown');
+        });
+
+        el.addEventListener('keyup', (e) => {
+          e = e || window.event;
+          e.preventDefault();
+        });
+      }
     }
 
     this.filter.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tag => {
@@ -153,13 +170,46 @@ class DynamicTagController {
     }
   }
 
-  filterInputListener(e, el, method) {
+  android_filterInputListener(e, el) {
+    if (el.childNodes.length == 0) return;
+
+    if (e.inputType == "insertParagraph") {
+      this.fillAutocomplete(el);
+      let data = el.childNodes[0].data;
+      this.toggleTag(data);
+      el.innerHTML = "";
+      return;
+    }
+
+    let data = el.childNodes[0].data;
+
+    if (data != undefined && data.length > 0) {
+      if (this.useSearchBox == "true") {
+        if (!this.filter.querySelector(this.classListToSelector(this.searchBoxClass))) {
+          let searchBox = document.createElement("div");
+          this.searchBoxClass.split(" ").forEach(searchBoxClass => {
+            searchBox.classList.add(searchBoxClass);
+          });
+          el.after(searchBox);
+          this.populateSearchBox(el);
+        }
+        this.populateSearchBox(el);
+      }
+      if (this.useAutocomplete == "true") this.populateAutocomplete(el);
+    } else {
+      if (this.useSearchBox == "true") this.filter.removeChild(this.filter.querySelector(this.classListToSelector(this.searchBoxClass)));
+      if (this.useAutocomplete == "true") el.removeChild(this.filter.querySelector(this.classListToSelector(this.autocompleteClass)));
+    }
+  }
+
+  filterInputListener(e, el) {
     let key = event.key;
+    let keycode = event.keyCode;
     key = key.replace(/[^\x20-\x7E]/g, '');
 
-    if (e.repeat && e.keyCode != 8) e.preventDefault();
+    if (e.repeat && keycode != 8) e.preventDefault();
 
-    if (el.dataset.empty == "true" && e.keyCode == 8) e.preventDefault();
+    if (el.dataset.empty == "true" && keycode == 8) e.preventDefault();
 
     if (el.dataset.empty == "true" && key.length > 0 && key.length <= 1) {
       e.preventDefault();
@@ -175,22 +225,22 @@ class DynamicTagController {
         this.populateSearchBox(el);
       }
       if (this.useAutocomplete == "true") this.populateAutocomplete(el);
-    } else if (el.childNodes[0].data.length <= 1 && el.dataset.empty == "false" && e.keyCode == 8) {
+    } else if (el.childNodes[0].data.length <= 1 && el.dataset.empty == "false" && keycode == 8) {
       e.preventDefault();
       el.dataset.empty = "true"
       el.childNodes[0].data = this.filterInputPlaceholder;
       if (this.useSearchBox == "true") this.filter.removeChild(this.filter.querySelector(this.classListToSelector(this.searchBoxClass)));
       if (this.useAutocomplete == "true") el.removeChild(this.filter.querySelector(this.classListToSelector(this.autocompleteClass)));
-    } else if (e.keyCode == 8 && el.dataset.empty == "false") {
+    } else if (keycode == 8 && el.dataset.empty == "false") {
       e.preventDefault();
       el.childNodes[0].data = el.childNodes[0].data.substring(0, el.childNodes[0].data.length - 1);
       this.setCursor(el);
       if (this.useSearchBox == "true") this.populateSearchBox(el);
       if (this.useAutocomplete == "true") this.populateAutocomplete(el);
-    } else if (e.keyCode == 9) {
+    } else if (keycode == 9) {
       e.preventDefault();
       if (this.useAutocomplete == "true") this.fillAutocomplete(el);
-    } else if (e.keyCode == 13) {
+    } else if (keycode == 13) {
       e.preventDefault();
       let tag = el.childNodes[0].data;
       let normalizedTag = this.nonStrictTagSearch(tag);
@@ -219,8 +269,7 @@ class DynamicTagController {
     sel.addRange(range);
   }
 
-  getAutocompleteResult(el) {
-    let searchText = el.childNodes[0].data;
+  getAutocompleteResult(searchText) {
     let searches = this.allTags.filter(tag => tag.toLowerCase().startsWith(searchText.toLowerCase()));
 
     let primary = "";
@@ -238,7 +287,7 @@ class DynamicTagController {
   fillAutocomplete(el) {
     let remaining = document.querySelector(this.classListToSelector(this.autocompleteClass));
     let result = "";
-    this.getAutocompleteResult(el).forEach(piece => {
+    this.getAutocompleteResult(el.childNodes[0].data).forEach(piece => {
       result += piece;
     });
     if (result != "") el.innerHTML = result;
@@ -249,7 +298,7 @@ class DynamicTagController {
   }
 
   populateAutocomplete(el) {
-    let remainingText = this.getAutocompleteResult(el)[1];
+    let remainingText = this.getAutocompleteResult(el.childNodes[0].data)[1];
     let remaining = document.querySelector(this.classListToSelector(this.autocompleteClass));
     if (remaining) {
       remaining.innerHTML = remainingText;
