@@ -14,6 +14,9 @@ class DynamicTagController {
       filterTagType: defines what type of element to add to filter, defaults to "span"
       activeTagClass: defines what class to assign to active tags, defaults to "active"
 
+      -- filtering --
+      customFilterFunction: define a custom function used to filter tags, taking in two parameters: an array of all elements, and an array of tags, defaults to null
+
       -- input behavior --
       filterInputClass: defines what class to assign to the filter input, if filterSelectionMethod is set to "input", defaults to "filter-input"
       filterInputPlaceholder: defines what text to use as the placeholder, if filterSelectionMethod is set to "input", defaults to "Filter by tags:"
@@ -45,6 +48,8 @@ class DynamicTagController {
     this.filterTagType = params.filterTagType || "span";
     this.activeTagClass = params.activeTagClass || "active";
     this.selectorExclusivity = params["selectorExclusivity"] || "union";
+
+    this.customFilterFunction = params.customFilterFunction || null;
 
     this.filterInputClass = params["filterInputClass"] || "filter-input";
     this.filterInputPlaceholder = params["filterInputPlaceholder"] || "Filter by tags:";
@@ -379,9 +384,13 @@ class DynamicTagController {
 
   filterElements() {
     this.activeCards = Array.from(this.allCards);
-    this.tagFilter.forEach(tag => {
-      this.activeCards = this.activeCards.filter(el => this.tagDict[tag].includes(el));
-    });
+    if (this.customFilterFunction == null) {
+      this.tagFilter.forEach(tag => {
+        this.activeCards = this.activeCards.filter(el => this.tagDict[tag].includes(el));
+      });
+    } else {
+      this.activeCards = this.customFilterFunction(this.activeCards, this.tagFilter);
+    }
   }
 
   updateElements() {
