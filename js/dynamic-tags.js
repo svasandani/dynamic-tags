@@ -44,16 +44,16 @@ class DynamicTagController {
 
     this.useDataset = params.useDataset != null;
     this.dataTag = params.dataTag ?? "tag";
-    this.filterSelectionMethod = params["filterSelectionMethod"] ?? "list";
+    this.filterSelectionMethod = params.filterSelectionMethod ?? "list";
     this.filterTagType = params.filterTagType ?? "span";
     this.activeTagClass = params.activeTagClass ?? "active";
-    this.selectorExclusivity = params["selectorExclusivity"] ?? "union";
+    this.selectorExclusivity = params.selectorExclusivity ?? "union";
 
     this.customFilterFunction = params.customFilterFunction ?? null;
 
-    this.filterInputClass = params["filterInputClass"] ?? "filter-input";
+    this.filterInputClass = params.filterInputClass ?? "filter-input";
     this.filterInputPlaceholder =
-      params["filterInputPlaceholder"] ?? "Filter by tags:";
+      params.filterInputPlaceholder ?? "Filter by tags:";
     this.useAutocomplete =
       this.filterSelectionMethod == "input"
         ? params.useAutocomplete ?? "true"
@@ -62,8 +62,8 @@ class DynamicTagController {
       this.filterSelectionMethod == "input"
         ? params.useSearchBox ?? "true"
         : "false";
-    this.autocompleteClass = params["autocompleteClass"] ?? "autocomplete";
-    this.searchBoxClass = params["searchBoxClass"] ?? "search-box";
+    this.autocompleteClass = params.autocompleteClass ?? "autocomplete";
+    this.searchBoxClass = params.searchBoxClass ?? "search-box";
 
     this.noResultError = params.noResultError == "false" ? false : true;
     this.noResult = this.noResultError
@@ -74,12 +74,12 @@ class DynamicTagController {
     if (this.noResultError)
       this.noResult.appendChild(
         params.noResultText != null
-          ? document.createTextNode(params["noResultText"])
+          ? document.createTextNode(params.noResultText)
           : document.createTextNode("Sorry, nothing matches your filters.")
       );
 
     /* STYLING */
-    if (params["useDefaultStyling"] == "true") {
+    if (params.useDefaultStyling == "true") {
       let dts = new DynamicTagStyler(params);
     }
 
@@ -604,9 +604,9 @@ class DynamicTagStyler {
     this.cardClass = params.card ?? "card";
     this.tagClass = params.tag ?? "tag";
     this.activeTagClass = params.activeTagClass ?? "active";
-    this.filterInputClass = params["filterInputClass"] ?? "filter-input";
-    this.autocompleteClass = params["autocompleteClass"] ?? "autocomplete";
-    this.searchBoxClass = params["searchBoxClass"] ?? "search-box";
+    this.filterInputClass = params.filterInputClass ?? "filter-input";
+    this.autocompleteClass = params.autocompleteClass ?? "autocomplete";
+    this.searchBoxClass = params.searchBoxClass ?? "search-box";
 
     el.addEventListener("load", () => {
       this.modifyStyleSheet(params, el);
