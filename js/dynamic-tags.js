@@ -42,7 +42,7 @@ class DynamicTagController {
     this.cardClass = params.card ?? "card";
     this.tagClass = params.tag ?? "tag";
 
-    this.useDataset = params.useDataset != null;
+    this.useDataset = params.useDataset !== null;
     this.dataTag = params.dataTag ?? "tag";
     this.filterSelectionMethod = params.filterSelectionMethod ?? "list";
     this.filterTagType = params.filterTagType ?? "span";
@@ -55,31 +55,31 @@ class DynamicTagController {
     this.filterInputPlaceholder =
       params.filterInputPlaceholder ?? "Filter by tags:";
     this.useAutocomplete =
-      this.filterSelectionMethod == "input"
+      this.filterSelectionMethod === "input"
         ? params.useAutocomplete ?? "true"
         : "false";
     this.useSearchBox =
-      this.filterSelectionMethod == "input"
+      this.filterSelectionMethod === "input"
         ? params.useSearchBox ?? "true"
         : "false";
     this.autocompleteClass = params.autocompleteClass ?? "autocomplete";
     this.searchBoxClass = params.searchBoxClass ?? "search-box";
 
-    this.noResultError = params.noResultError == "false" ? false : true;
+    this.noResultError = params.noResultError === "false" ? false : true;
     this.noResult = this.noResultError
       ? document.createElement(
-          params.noResultType != null ? params.noResultType : "h4"
+          params.noResultType !== null ? params.noResultType : "h4"
         )
       : "";
     if (this.noResultError)
       this.noResult.appendChild(
-        params.noResultText != null
+        params.noResultText !== null
           ? document.createTextNode(params.noResultText)
           : document.createTextNode("Sorry, nothing matches your filters.")
       );
 
     /* STYLING */
-    if (params.useDefaultStyling == "true") {
+    if (params.useDefaultStyling === "true") {
       let dts = new DynamicTagStyler(params);
     }
 
@@ -118,7 +118,7 @@ class DynamicTagController {
       el.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(
         (tag) => {
           let dataTag = this.getTag(tag);
-          if (typeof this.tagDict[dataTag] == "undefined") {
+          if (typeof this.tagDict[dataTag] === "undefined") {
             this.tagDict[dataTag] = [el];
           } else {
             this.tagDict[dataTag].push(el);
@@ -128,7 +128,7 @@ class DynamicTagController {
     });
 
     for (let tag in this.tagDict) {
-      if (this.filterSelectionMethod == "list") {
+      if (this.filterSelectionMethod === "list") {
         let el = document.createElement(this.filterTagType);
         el.appendChild(document.createTextNode(tag));
         this.tagClass.split(" ").forEach((tagClass) => {
@@ -139,7 +139,7 @@ class DynamicTagController {
       } else this.allTags.push(tag);
     }
 
-    if (this.filterSelectionMethod == "input") {
+    if (this.filterSelectionMethod === "input") {
       while (this.filter.childNodes.length > 0) {
         this.filter.removeChild(this.filter.lastChild);
       }
@@ -210,14 +210,14 @@ class DynamicTagController {
 
   removeLineBreaks(el) {
     for (let i = 0; i < el.childNodes.length; i++) {
-      if (el.childNodes[i].nodeName == "BR") el.removeChild(el.childNodes[i]);
+      if (el.childNodes[i].nodeName === "BR") el.removeChild(el.childNodes[i]);
     }
   }
 
   android_filterInputListener(e, el) {
-    if (el.childNodes.length == 0) return;
+    if (el.childNodes.length === 0) return;
 
-    if (e.inputType == "insertParagraph") {
+    if (e.inputType === "insertParagraph") {
       this.fillAutocomplete(el);
       let data = el.childNodes[0].data;
       this.toggleTag(data);
@@ -227,8 +227,8 @@ class DynamicTagController {
 
     let data = el.childNodes[0].data;
 
-    if (data != undefined && data.length > 0) {
-      if (this.useSearchBox == "true") {
+    if (data !== undefined && data.length > 0) {
+      if (this.useSearchBox === "true") {
         if (
           !this.filter.querySelector(
             this.classListToSelector(this.searchBoxClass)
@@ -243,15 +243,15 @@ class DynamicTagController {
         }
         this.populateSearchBox(el);
       }
-      if (this.useAutocomplete == "true") this.populateAutocomplete(el);
+      if (this.useAutocomplete === "true") this.populateAutocomplete(el);
     } else {
-      if (this.useSearchBox == "true")
+      if (this.useSearchBox === "true")
         this.filter.removeChild(
           this.filter.querySelector(
             this.classListToSelector(this.searchBoxClass)
           )
         );
-      if (this.useAutocomplete == "true")
+      if (this.useAutocomplete === "true")
         el.removeChild(
           this.filter.querySelector(
             this.classListToSelector(this.autocompleteClass)
@@ -265,16 +265,16 @@ class DynamicTagController {
     let keycode = event.keyCode;
     key = key.replace(/[^\x20-\x7E]/g, "");
 
-    if (e.repeat && keycode != 8) e.preventDefault();
+    if (e.repeat && keycode !== 8) e.preventDefault();
 
-    if (el.dataset.empty == "true" && keycode == 8) e.preventDefault();
+    if (el.dataset.empty === "true" && keycode === 8) e.preventDefault();
 
-    if (el.dataset.empty == "true" && key.length > 0 && key.length <= 1) {
+    if (el.dataset.empty === "true" && key.length > 0 && key.length <= 1) {
       e.preventDefault();
       el.innerHTML = key;
       this.setCursor(el);
       el.dataset.empty = false;
-      if (this.useSearchBox == "true") {
+      if (this.useSearchBox === "true") {
         let searchBox = document.createElement("div");
         this.searchBoxClass.split(" ").forEach((searchBoxClass) => {
           searchBox.classList.add(searchBoxClass);
@@ -282,46 +282,46 @@ class DynamicTagController {
         el.after(searchBox);
         this.populateSearchBox(el);
       }
-      if (this.useAutocomplete == "true") this.populateAutocomplete(el);
+      if (this.useAutocomplete === "true") this.populateAutocomplete(el);
     } else if (
       el.childNodes[0].data.length <= 1 &&
-      el.dataset.empty == "false" &&
-      keycode == 8
+      el.dataset.empty === "false" &&
+      keycode === 8
     ) {
       e.preventDefault();
       el.dataset.empty = "true";
       el.childNodes[0].data = this.filterInputPlaceholder;
-      if (this.useSearchBox == "true")
+      if (this.useSearchBox === "true")
         this.filter.removeChild(
           this.filter.querySelector(
             this.classListToSelector(this.searchBoxClass)
           )
         );
-      if (this.useAutocomplete == "true")
+      if (this.useAutocomplete === "true")
         el.removeChild(
           this.filter.querySelector(
             this.classListToSelector(this.autocompleteClass)
           )
         );
-    } else if (keycode == 8 && el.dataset.empty == "false") {
+    } else if (keycode === 8 && el.dataset.empty === "false") {
       e.preventDefault();
       el.childNodes[0].data = el.childNodes[0].data.substring(
         0,
         el.childNodes[0].data.length - 1
       );
       this.setCursor(el);
-      if (this.useSearchBox == "true") this.populateSearchBox(el);
-      if (this.useAutocomplete == "true") this.populateAutocomplete(el);
-    } else if (keycode == 9) {
+      if (this.useSearchBox === "true") this.populateSearchBox(el);
+      if (this.useAutocomplete === "true") this.populateAutocomplete(el);
+    } else if (keycode === 9) {
       e.preventDefault();
-      if (this.useAutocomplete == "true") this.fillAutocomplete(el);
-    } else if (keycode == 13) {
+      if (this.useAutocomplete === "true") this.fillAutocomplete(el);
+    } else if (keycode === 13) {
       e.preventDefault();
       let tag = el.childNodes[0].data;
       let normalizedTag = this.nonStrictTagSearch(tag);
       if (normalizedTag) {
         this.toggleTag(normalizedTag);
-      } else if (method == "keyup") {
+      } else if (method === "keyup") {
         el.style.color = "red";
       }
     } else if (key.length <= 1) {
@@ -330,8 +330,8 @@ class DynamicTagController {
 
       this.setCursor(el);
 
-      if (this.useSearchBox == "true") this.populateSearchBox(el);
-      if (this.useAutocomplete == "true") this.populateAutocomplete(el);
+      if (this.useSearchBox === "true") this.populateSearchBox(el);
+      if (this.useAutocomplete === "true") this.populateAutocomplete(el);
     }
   }
 
@@ -372,7 +372,7 @@ class DynamicTagController {
     this.getAutocompleteResult(el.childNodes[0].data).forEach((piece) => {
       result += piece;
     });
-    if (result != "") el.innerHTML = result;
+    if (result !== "") el.innerHTML = result;
 
     this.setCursor(el);
 
@@ -406,7 +406,7 @@ class DynamicTagController {
     let lowercase = searchTag.toLowerCase();
     let toReturn = null;
     this.allTags.forEach((tag) => {
-      if (tag.toLowerCase() == lowercase) {
+      if (tag.toLowerCase() === lowercase) {
         toReturn = tag;
       }
     });
@@ -429,7 +429,7 @@ class DynamicTagController {
     );
     el.dataset.empty = "true";
     el.innerHTML = this.filterInputPlaceholder;
-    if (this.useSearchBox == "true") {
+    if (this.useSearchBox === "true") {
       let autocomplete = this.filter.querySelector(
         this.classListToSelector(this.searchBoxClass)
       );
@@ -478,7 +478,7 @@ class DynamicTagController {
 
   filterElements() {
     this.activeCards = Array.from(this.allCards);
-    if (this.customFilterFunction == null) {
+    if (this.customFilterFunction === null) {
       this.tagFilter.forEach((tag) => {
         this.activeCards = this.activeCards.filter((el) =>
           this.tagDict[tag].includes(el)
@@ -497,7 +497,7 @@ class DynamicTagController {
     let allCards = Array.from(this.allCards);
     while (this.container.childNodes.length > 0) {
       let el = this.container.lastChild;
-      if (!allCards.includes(el) && el != this.noResult) notCards.push(el);
+      if (!allCards.includes(el) && el !== this.noResult) notCards.push(el);
       this.container.removeChild(el);
     }
 
@@ -505,7 +505,7 @@ class DynamicTagController {
       this.container.prepend(el);
     });
 
-    if (this.activeCards.length == 0) {
+    if (this.activeCards.length === 0) {
       this.container.append(this.noResult);
     } else {
       this.activeCards.forEach((el) => {
@@ -535,10 +535,10 @@ class DynamicTagController {
       .querySelectorAll(this.classListToSelector(this.tagClass))
       .forEach((tagEl) => {
         if (this.useDataset) {
-          if (tagEl.getAttribute("data-" + this.dataTag) == tag)
+          if (tagEl.getAttribute("data-" + this.dataTag) === tag)
             this.filter.removeChild(tagEl);
         } else {
-          if (tagEl.innerHTML == tag) this.filter.removeChild(tagEl);
+          if (tagEl.innerHTML === tag) this.filter.removeChild(tagEl);
         }
       });
   }
@@ -546,20 +546,20 @@ class DynamicTagController {
   toggleTag(tag) {
     let index = this.tagFilter.indexOf(tag);
     if (index > -1) {
-      if (this.filterSelectionMethod == "input") {
+      if (this.filterSelectionMethod === "input") {
         this.removeFromFilter(tag);
         this.resetInput();
       }
       this.tagFilter.splice(index, 1);
     } else {
-      if (this.filterSelectionMethod == "input") {
+      if (this.filterSelectionMethod === "input") {
         this.addTagTo(tag, this.filter, true);
         this.resetInput();
       }
       this.tagFilter.push(tag);
     }
 
-    if (this.tagFilter.length == 0) {
+    if (this.tagFilter.length === 0) {
       this.activeCards = this.allCards;
       this.updateElements();
       this.updateTagActive();
@@ -639,11 +639,11 @@ class DynamicTagStyler {
     for (let i = 1; i < length; i++) {
       let rule = rules[i];
       let text = "";
-      if (rule.selectorText != undefined) {
+      if (rule.selectorText !== undefined) {
         let parts = rule.cssText.split("{");
         let selector = this.replaceSelectors(parts[0]);
 
-        if (rule.selectorText == ".filter") {
+        if (rule.selectorText === ".filter") {
           if (
             filter.stickyFilter === "desktop" ||
             filter.stickyFilter === "both"
@@ -653,7 +653,7 @@ class DynamicTagStyler {
               "position: sticky;"
             );
 
-            if (filter.top != null && Array.isArray(filter.top)) {
+            if (filter.top !== null && Array.isArray(filter.top)) {
               parts[1] = parts[1].replace(
                 "top: 0px;",
                 "top: " + filter.top[0] + ";"
@@ -689,7 +689,7 @@ class DynamicTagStyler {
       let parts = rule.cssText.split("{");
       let selector = this.replaceSelectors(parts[0]);
 
-      if (rule.selectorText == ".filter") {
+      if (rule.selectorText === ".filter") {
         if (
           filter.stickyFilter === "mobile" ||
           filter.stickyFilter === "both"
@@ -699,7 +699,7 @@ class DynamicTagStyler {
             "position: sticky;"
           );
 
-          if (filter.top != null && Array.isArray(filter.top)) {
+          if (filter.top !== null && Array.isArray(filter.top)) {
             parts[1] = parts[1].replace(
               "top: 0px;",
               "top: " + filter.top[0] + ";"
@@ -761,7 +761,7 @@ class DynamicTagStyler {
 
     this.migrateStyleSheet(params, stylesheet);
 
-    if (styling.baseTheme == "blue") {
+    if (styling.baseTheme === "blue") {
       stylesheet.insertRule(":root { --tag-color: var(--pastel-blue); }", 1);
       stylesheet.insertRule(":root { --tag-shadow-color: var(--blue); }", 1);
       stylesheet.insertRule(":root { --active-tag-color: var(--blue); }", 1);
@@ -769,7 +769,7 @@ class DynamicTagStyler {
         ":root { --active-tag-shadow-color: var(--blue); }",
         1
       );
-    } else if (styling.baseTheme == "green") {
+    } else if (styling.baseTheme === "green") {
       stylesheet.insertRule(":root { --tag-color: var(--pastel-green); }", 1);
       stylesheet.insertRule(":root { --tag-shadow-color: var(--green); }", 1);
       stylesheet.insertRule(":root { --active-tag-color: var(--green); }", 1);
