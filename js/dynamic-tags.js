@@ -37,26 +37,26 @@ class DynamicTagController {
   */
 
   constructor(params) {
-    this.containerClass = params.container || "container";
-    this.filterClass = params.filter || "filter";
-    this.cardClass = params.card || "card";
-    this.tagClass = params.tag || "tag";
+    this.containerClass = params.container ?? "container";
+    this.filterClass = params.filter ?? "filter";
+    this.cardClass = params.card ?? "card";
+    this.tagClass = params.tag ?? "tag";
 
     this.useDataset = params.useDataset != null;
-    this.dataTag = params.dataTag || "tag";
-    this.filterSelectionMethod = params["filterSelectionMethod"] || "list";
-    this.filterTagType = params.filterTagType || "span";
-    this.activeTagClass = params.activeTagClass || "active";
-    this.selectorExclusivity = params["selectorExclusivity"] || "union";
+    this.dataTag = params.dataTag ?? "tag";
+    this.filterSelectionMethod = params["filterSelectionMethod"] ?? "list";
+    this.filterTagType = params.filterTagType ?? "span";
+    this.activeTagClass = params.activeTagClass ?? "active";
+    this.selectorExclusivity = params["selectorExclusivity"] ?? "union";
 
-    this.customFilterFunction = params.customFilterFunction || null;
+    this.customFilterFunction = params.customFilterFunction ?? null;
 
-    this.filterInputClass = params["filterInputClass"] || "filter-input";
-    this.filterInputPlaceholder = params["filterInputPlaceholder"] || "Filter by tags:";
-    this.useAutocomplete = this.filterSelectionMethod == "input" ? params.useAutocomplete || "true" : "false";
-    this.useSearchBox = this.filterSelectionMethod == "input" ? params.useSearchBox || "true" : "false";
-    this.autocompleteClass = params["autocompleteClass"] || "autocomplete";
-    this.searchBoxClass = params["searchBoxClass"] || "search-box";
+    this.filterInputClass = params["filterInputClass"] ?? "filter-input";
+    this.filterInputPlaceholder = params["filterInputPlaceholder"] ?? "Filter by tags:";
+    this.useAutocomplete = this.filterSelectionMethod == "input" ? params.useAutocomplete ?? "true" : "false";
+    this.useSearchBox = this.filterSelectionMethod == "input" ? params.useSearchBox ?? "true" : "false";
+    this.autocompleteClass = params["autocompleteClass"] ?? "autocomplete";
+    this.searchBoxClass = params["searchBoxClass"] ?? "search-box";
 
     this.noResultError = params.noResultError == "false" ? false : true;
     this.noResult = this.noResultError ? document.createElement(params.noResultType != null ? params.noResultType : "h4") : "";
@@ -69,7 +69,7 @@ class DynamicTagController {
 
     this.filter = document.querySelector(this.classListToSelector(this.filterClass));
     this.container = document.querySelector(this.classListToSelector(this.containerClass));
-    this.allCards = this.container.querySelectorAll(this.classListToSelector(this.cardClass)) || [];
+    this.allCards = this.container.querySelectorAll(this.classListToSelector(this.cardClass)) ?? [];
     this.activeCards = this.allCards;
     this.tagDict = {};
     this.tagFilter = [];
@@ -82,7 +82,7 @@ class DynamicTagController {
   }
 
   refreshElements() {
-    this.allCards = this.container.querySelectorAll(this.classListToSelector(this.cardClass)) || [];
+    this.allCards = this.container.querySelectorAll(this.classListToSelector(this.cardClass)) ?? [];
   }
 
   loadTags() {
@@ -492,17 +492,17 @@ class DynamicTagStyler {
   */
   constructor(params) {
     let styling = params.styling;
-    this.cssPath = styling.cssPath || "dynamic-tags.css";
+    this.cssPath = styling.cssPath ?? "dynamic-tags.css";
     let el = this.createLinkTag(this.cssPath);
 
-    this.containerClass = params.container || "container";
-    this.filterClass = params.filter || "filter";
-    this.cardClass = params.card || "card";
-    this.tagClass = params.tag || "tag";
-    this.activeTagClass = params.activeTagClass || "active";
-    this.filterInputClass = params["filterInputClass"] || "filter-input";
-    this.autocompleteClass = params["autocompleteClass"] || "autocomplete";
-    this.searchBoxClass = params["searchBoxClass"] || "search-box";
+    this.containerClass = params.container ?? "container";
+    this.filterClass = params.filter ?? "filter";
+    this.cardClass = params.card ?? "card";
+    this.tagClass = params.tag ?? "tag";
+    this.activeTagClass = params.activeTagClass ?? "active";
+    this.filterInputClass = params["filterInputClass"] ?? "filter-input";
+    this.autocompleteClass = params["autocompleteClass"] ?? "autocomplete";
+    this.searchBoxClass = params["searchBoxClass"] ?? "search-box";
 
     el.addEventListener('load', () => {
       this.modifyStyleSheet(params, el)
