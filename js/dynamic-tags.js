@@ -52,24 +52,47 @@ class DynamicTagController {
     this.customFilterFunction = params.customFilterFunction ?? null;
 
     this.filterInputClass = params["filterInputClass"] ?? "filter-input";
-    this.filterInputPlaceholder = params["filterInputPlaceholder"] ?? "Filter by tags:";
-    this.useAutocomplete = this.filterSelectionMethod == "input" ? params.useAutocomplete ?? "true" : "false";
-    this.useSearchBox = this.filterSelectionMethod == "input" ? params.useSearchBox ?? "true" : "false";
+    this.filterInputPlaceholder =
+      params["filterInputPlaceholder"] ?? "Filter by tags:";
+    this.useAutocomplete =
+      this.filterSelectionMethod == "input"
+        ? params.useAutocomplete ?? "true"
+        : "false";
+    this.useSearchBox =
+      this.filterSelectionMethod == "input"
+        ? params.useSearchBox ?? "true"
+        : "false";
     this.autocompleteClass = params["autocompleteClass"] ?? "autocomplete";
     this.searchBoxClass = params["searchBoxClass"] ?? "search-box";
 
     this.noResultError = params.noResultError == "false" ? false : true;
-    this.noResult = this.noResultError ? document.createElement(params.noResultType != null ? params.noResultType : "h4") : "";
-    if (this.noResultError) this.noResult.appendChild(params.noResultText != null ? document.createTextNode(params["noResultText"]) : document.createTextNode("Sorry, nothing matches your filters."));
+    this.noResult = this.noResultError
+      ? document.createElement(
+          params.noResultType != null ? params.noResultType : "h4"
+        )
+      : "";
+    if (this.noResultError)
+      this.noResult.appendChild(
+        params.noResultText != null
+          ? document.createTextNode(params["noResultText"])
+          : document.createTextNode("Sorry, nothing matches your filters.")
+      );
 
     /* STYLING */
     if (params["useDefaultStyling"] == "true") {
       let dts = new DynamicTagStyler(params);
     }
 
-    this.filter = document.querySelector(this.classListToSelector(this.filterClass));
-    this.container = document.querySelector(this.classListToSelector(this.containerClass));
-    this.allCards = this.container.querySelectorAll(this.classListToSelector(this.cardClass)) ?? [];
+    this.filter = document.querySelector(
+      this.classListToSelector(this.filterClass)
+    );
+    this.container = document.querySelector(
+      this.classListToSelector(this.containerClass)
+    );
+    this.allCards =
+      this.container.querySelectorAll(
+        this.classListToSelector(this.cardClass)
+      ) ?? [];
     this.activeCards = this.allCards;
     this.tagDict = {};
     this.tagFilter = [];
@@ -82,28 +105,33 @@ class DynamicTagController {
   }
 
   refreshElements() {
-    this.allCards = this.container.querySelectorAll(this.classListToSelector(this.cardClass)) ?? [];
+    this.allCards =
+      this.container.querySelectorAll(
+        this.classListToSelector(this.cardClass)
+      ) ?? [];
   }
 
   loadTags() {
     this.refreshElements();
 
-    this.allCards.forEach(el => {
-      el.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tag => {
-        let dataTag = this.getTag(tag);
-        if (typeof this.tagDict[dataTag] == "undefined") {
-          this.tagDict[dataTag] = [el];
-        } else {
-          this.tagDict[dataTag].push(el);
+    this.allCards.forEach((el) => {
+      el.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(
+        (tag) => {
+          let dataTag = this.getTag(tag);
+          if (typeof this.tagDict[dataTag] == "undefined") {
+            this.tagDict[dataTag] = [el];
+          } else {
+            this.tagDict[dataTag].push(el);
+          }
         }
-      });
+      );
     });
 
     for (let tag in this.tagDict) {
       if (this.filterSelectionMethod == "list") {
         let el = document.createElement(this.filterTagType);
         el.appendChild(document.createTextNode(tag));
-        this.tagClass.split(" ").forEach(tagClass => {
+        this.tagClass.split(" ").forEach((tagClass) => {
           el.classList.add(tagClass);
         });
         if (this.useDataset) el.setAttribute("data-" + this.dataTag, tag);
@@ -117,7 +145,7 @@ class DynamicTagController {
       }
 
       let el = document.createElement("span");
-      this.filterInputClass.split(" ").forEach(filterInputClass => {
+      this.filterInputClass.split(" ").forEach((filterInputClass) => {
         el.classList.add(filterInputClass);
       });
       el.innerHTML = this.filterInputPlaceholder;
@@ -126,46 +154,58 @@ class DynamicTagController {
       this.filter.append(el);
 
       if (navigator.userAgent.match(/Android/i)) {
-        el.addEventListener('click', () => {
+        el.addEventListener("click", () => {
           el.innerHTML = "";
         });
 
-        el.addEventListener('blur', () => {
+        el.addEventListener("blur", () => {
           el.innerHTML = this.filterInputPlaceholder;
         });
 
-        el.addEventListener('input', (e) => {
+        el.addEventListener("input", (e) => {
           this.removeLineBreaks(el);
           el.style.removeProperty("color");
           e = e || window.event;
           this.android_filterInputListener(e, el);
         });
       } else {
-        el.addEventListener('keydown', (e) => {
+        el.addEventListener("keydown", (e) => {
           this.removeLineBreaks(el);
           el.style.removeProperty("color");
           e = e || window.event;
-          this.filterInputListener(e, el, 'keydown');
+          this.filterInputListener(e, el, "keydown");
         });
 
-        el.addEventListener('keyup', (e) => {
+        el.addEventListener("keyup", (e) => {
           e = e || window.event;
           e.preventDefault();
         });
       }
     }
 
-    this.filter.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tag => {
-      tag.addEventListener('click', () => {
-        this.toggleTag(this.getTag(tag));
-      }, false);
-    });
+    this.filter
+      .querySelectorAll(this.classListToSelector(this.tagClass))
+      .forEach((tag) => {
+        tag.addEventListener(
+          "click",
+          () => {
+            this.toggleTag(this.getTag(tag));
+          },
+          false
+        );
+      });
 
-    this.container.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tag => {
-      tag.addEventListener('click', () => {
-        this.toggleTag(this.getTag(tag));
-      }, false);
-    });
+    this.container
+      .querySelectorAll(this.classListToSelector(this.tagClass))
+      .forEach((tag) => {
+        tag.addEventListener(
+          "click",
+          () => {
+            this.toggleTag(this.getTag(tag));
+          },
+          false
+        );
+      });
   }
 
   removeLineBreaks(el) {
@@ -189,9 +229,13 @@ class DynamicTagController {
 
     if (data != undefined && data.length > 0) {
       if (this.useSearchBox == "true") {
-        if (!this.filter.querySelector(this.classListToSelector(this.searchBoxClass))) {
+        if (
+          !this.filter.querySelector(
+            this.classListToSelector(this.searchBoxClass)
+          )
+        ) {
           let searchBox = document.createElement("div");
-          this.searchBoxClass.split(" ").forEach(searchBoxClass => {
+          this.searchBoxClass.split(" ").forEach((searchBoxClass) => {
             searchBox.classList.add(searchBoxClass);
           });
           el.after(searchBox);
@@ -201,15 +245,25 @@ class DynamicTagController {
       }
       if (this.useAutocomplete == "true") this.populateAutocomplete(el);
     } else {
-      if (this.useSearchBox == "true") this.filter.removeChild(this.filter.querySelector(this.classListToSelector(this.searchBoxClass)));
-      if (this.useAutocomplete == "true") el.removeChild(this.filter.querySelector(this.classListToSelector(this.autocompleteClass)));
+      if (this.useSearchBox == "true")
+        this.filter.removeChild(
+          this.filter.querySelector(
+            this.classListToSelector(this.searchBoxClass)
+          )
+        );
+      if (this.useAutocomplete == "true")
+        el.removeChild(
+          this.filter.querySelector(
+            this.classListToSelector(this.autocompleteClass)
+          )
+        );
     }
   }
 
   filterInputListener(e, el) {
     let key = event.key;
     let keycode = event.keyCode;
-    key = key.replace(/[^\x20-\x7E]/g, '');
+    key = key.replace(/[^\x20-\x7E]/g, "");
 
     if (e.repeat && keycode != 8) e.preventDefault();
 
@@ -222,22 +276,39 @@ class DynamicTagController {
       el.dataset.empty = false;
       if (this.useSearchBox == "true") {
         let searchBox = document.createElement("div");
-        this.searchBoxClass.split(" ").forEach(searchBoxClass => {
+        this.searchBoxClass.split(" ").forEach((searchBoxClass) => {
           searchBox.classList.add(searchBoxClass);
         });
         el.after(searchBox);
         this.populateSearchBox(el);
       }
       if (this.useAutocomplete == "true") this.populateAutocomplete(el);
-    } else if (el.childNodes[0].data.length <= 1 && el.dataset.empty == "false" && keycode == 8) {
+    } else if (
+      el.childNodes[0].data.length <= 1 &&
+      el.dataset.empty == "false" &&
+      keycode == 8
+    ) {
       e.preventDefault();
-      el.dataset.empty = "true"
+      el.dataset.empty = "true";
       el.childNodes[0].data = this.filterInputPlaceholder;
-      if (this.useSearchBox == "true") this.filter.removeChild(this.filter.querySelector(this.classListToSelector(this.searchBoxClass)));
-      if (this.useAutocomplete == "true") el.removeChild(this.filter.querySelector(this.classListToSelector(this.autocompleteClass)));
+      if (this.useSearchBox == "true")
+        this.filter.removeChild(
+          this.filter.querySelector(
+            this.classListToSelector(this.searchBoxClass)
+          )
+        );
+      if (this.useAutocomplete == "true")
+        el.removeChild(
+          this.filter.querySelector(
+            this.classListToSelector(this.autocompleteClass)
+          )
+        );
     } else if (keycode == 8 && el.dataset.empty == "false") {
       e.preventDefault();
-      el.childNodes[0].data = el.childNodes[0].data.substring(0, el.childNodes[0].data.length - 1);
+      el.childNodes[0].data = el.childNodes[0].data.substring(
+        0,
+        el.childNodes[0].data.length - 1
+      );
       this.setCursor(el);
       if (this.useSearchBox == "true") this.populateSearchBox(el);
       if (this.useAutocomplete == "true") this.populateAutocomplete(el);
@@ -274,7 +345,9 @@ class DynamicTagController {
   }
 
   getAutocompleteResult(searchText) {
-    let searches = this.allTags.filter(tag => tag.toLowerCase().startsWith(searchText.toLowerCase()));
+    let searches = this.allTags.filter((tag) =>
+      tag.toLowerCase().startsWith(searchText.toLowerCase())
+    );
 
     let primary = "";
 
@@ -285,13 +358,18 @@ class DynamicTagController {
       }
     }
 
-    return [primary.substring(0, searchText.length), primary.slice(searchText.length, primary.length)];
+    return [
+      primary.substring(0, searchText.length),
+      primary.slice(searchText.length, primary.length),
+    ];
   }
 
   fillAutocomplete(el) {
-    let remaining = document.querySelector(this.classListToSelector(this.autocompleteClass));
+    let remaining = document.querySelector(
+      this.classListToSelector(this.autocompleteClass)
+    );
     let result = "";
-    this.getAutocompleteResult(el.childNodes[0].data).forEach(piece => {
+    this.getAutocompleteResult(el.childNodes[0].data).forEach((piece) => {
       result += piece;
     });
     if (result != "") el.innerHTML = result;
@@ -303,7 +381,9 @@ class DynamicTagController {
 
   populateAutocomplete(el) {
     let remainingText = this.getAutocompleteResult(el.childNodes[0].data)[1];
-    let remaining = document.querySelector(this.classListToSelector(this.autocompleteClass));
+    let remaining = document.querySelector(
+      this.classListToSelector(this.autocompleteClass)
+    );
     if (remaining) {
       remaining.innerHTML = remainingText;
       el.append(remaining);
@@ -311,7 +391,7 @@ class DynamicTagController {
       this.setCursor(el);
     } else {
       remaining = document.createElement("span");
-      this.autocompleteClass.split(" ").forEach(autocompleteClass => {
+      this.autocompleteClass.split(" ").forEach((autocompleteClass) => {
         remaining.classList.add(autocompleteClass);
       });
 
@@ -336,7 +416,7 @@ class DynamicTagController {
 
   classListToSelector(classList) {
     let selector = "";
-    classList.split(" ").forEach(className => {
+    classList.split(" ").forEach((className) => {
       selector += "." + className;
     });
 
@@ -344,24 +424,33 @@ class DynamicTagController {
   }
 
   resetInput() {
-    let el = this.filter.querySelector(this.classListToSelector(this.filterInputClass));
-    el.dataset.empty = "true"
+    let el = this.filter.querySelector(
+      this.classListToSelector(this.filterInputClass)
+    );
+    el.dataset.empty = "true";
     el.innerHTML = this.filterInputPlaceholder;
     if (this.useSearchBox == "true") {
-      let autocomplete = this.filter.querySelector(this.classListToSelector(this.searchBoxClass));
+      let autocomplete = this.filter.querySelector(
+        this.classListToSelector(this.searchBoxClass)
+      );
       if (autocomplete) this.filter.removeChild(autocomplete);
     }
   }
 
   populateSearchBox(el) {
-    let searches = this.allTags.filter(tag => tag.toLowerCase().includes(el.childNodes[0].data.toLowerCase()));
+    let searches = this.allTags.filter((tag) =>
+      tag.toLowerCase().includes(el.childNodes[0].data.toLowerCase())
+    );
 
-    let searchBox = this.filter.querySelector(this.classListToSelector(this.searchBoxClass));
+    let searchBox = this.filter.querySelector(
+      this.classListToSelector(this.searchBoxClass)
+    );
     if (searchBox) {
       searchBox.innerHTML = "";
 
-      searches.forEach(search => {
-        if (!this.tagFilter.includes(search)) this.addTagTo(search, searchBox, false);
+      searches.forEach((search) => {
+        if (!this.tagFilter.includes(search))
+          this.addTagTo(search, searchBox, false);
       });
     }
   }
@@ -369,27 +458,37 @@ class DynamicTagController {
   addTagTo(tag, element, active) {
     let el = document.createElement(this.filterTagType);
     el.appendChild(document.createTextNode(tag));
-    this.tagClass.split(" ").forEach(tagClass => {
+    this.tagClass.split(" ").forEach((tagClass) => {
       el.classList.add(tagClass);
     });
-    if (active) this.activeTagClass.split(" ").forEach(activeClass => {
-      el.classList.add(activeClass)
-    });
+    if (active)
+      this.activeTagClass.split(" ").forEach((activeClass) => {
+        el.classList.add(activeClass);
+      });
     if (this.useDataset) el.setAttribute("data-" + this.dataTag, tag);
-    el.addEventListener('click', () => {
-      this.toggleTag(this.getTag(el));
-    }, false);
+    el.addEventListener(
+      "click",
+      () => {
+        this.toggleTag(this.getTag(el));
+      },
+      false
+    );
     element.append(el);
   }
 
   filterElements() {
     this.activeCards = Array.from(this.allCards);
     if (this.customFilterFunction == null) {
-      this.tagFilter.forEach(tag => {
-        this.activeCards = this.activeCards.filter(el => this.tagDict[tag].includes(el));
+      this.tagFilter.forEach((tag) => {
+        this.activeCards = this.activeCards.filter((el) =>
+          this.tagDict[tag].includes(el)
+        );
       });
     } else {
-      this.activeCards = this.customFilterFunction(this.activeCards, this.tagFilter);
+      this.activeCards = this.customFilterFunction(
+        this.activeCards,
+        this.tagFilter
+      );
     }
   }
 
@@ -402,41 +501,46 @@ class DynamicTagController {
       this.container.removeChild(el);
     }
 
-    notCards.forEach(el => {
+    notCards.forEach((el) => {
       this.container.prepend(el);
-    })
+    });
 
     if (this.activeCards.length == 0) {
       this.container.append(this.noResult);
     } else {
-      this.activeCards.forEach(el => {
+      this.activeCards.forEach((el) => {
         this.container.append(el);
       });
     }
   }
 
   updateTagActive() {
-    document.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tag => {
-      if (this.tagFilter.includes(this.getTag(tag))) {
-        this.activeTagClass.split(" ").forEach(activeClass => {
-          tag.classList.add(activeClass)
-        });
-      } else {
-        this.activeTagClass.split(" ").forEach(activeClass => {
-          tag.classList.remove(activeClass)
-        });
-      }
-    });
+    document
+      .querySelectorAll(this.classListToSelector(this.tagClass))
+      .forEach((tag) => {
+        if (this.tagFilter.includes(this.getTag(tag))) {
+          this.activeTagClass.split(" ").forEach((activeClass) => {
+            tag.classList.add(activeClass);
+          });
+        } else {
+          this.activeTagClass.split(" ").forEach((activeClass) => {
+            tag.classList.remove(activeClass);
+          });
+        }
+      });
   }
 
   removeFromFilter(tag) {
-    this.filter.querySelectorAll(this.classListToSelector(this.tagClass)).forEach(tagEl => {
-      if (this.useDataset) {
-        if (tagEl.getAttribute("data-" + this.dataTag) == tag) this.filter.removeChild(tagEl);
-      } else {
-        if (tagEl.innerHTML == tag) this.filter.removeChild(tagEl);
-      }
-    });
+    this.filter
+      .querySelectorAll(this.classListToSelector(this.tagClass))
+      .forEach((tagEl) => {
+        if (this.useDataset) {
+          if (tagEl.getAttribute("data-" + this.dataTag) == tag)
+            this.filter.removeChild(tagEl);
+        } else {
+          if (tagEl.innerHTML == tag) this.filter.removeChild(tagEl);
+        }
+      });
   }
 
   toggleTag(tag) {
@@ -504,14 +608,14 @@ class DynamicTagStyler {
     this.autocompleteClass = params["autocompleteClass"] ?? "autocomplete";
     this.searchBoxClass = params["searchBoxClass"] ?? "search-box";
 
-    el.addEventListener('load', () => {
-      this.modifyStyleSheet(params, el)
+    el.addEventListener("load", () => {
+      this.modifyStyleSheet(params, el);
     });
   }
 
   classListToSelector(classList) {
     let selector = "";
-    classList.split(" ").forEach(className => {
+    classList.split(" ").forEach((className) => {
       selector += "." + className;
     });
 
@@ -540,13 +644,25 @@ class DynamicTagStyler {
         let selector = this.replaceSelectors(parts[0]);
 
         if (rule.selectorText == ".filter") {
-          if (filter.stickyFilter === "desktop" || filter.stickyFilter === "both") {
-            parts[1] = parts[1].replace("position: relative;", "position: sticky;");
+          if (
+            filter.stickyFilter === "desktop" ||
+            filter.stickyFilter === "both"
+          ) {
+            parts[1] = parts[1].replace(
+              "position: relative;",
+              "position: sticky;"
+            );
 
             if (filter.top != null && Array.isArray(filter.top)) {
-              parts[1] = parts[1].replace("top: 0px;", "top: " + filter.top[0] + ";");
+              parts[1] = parts[1].replace(
+                "top: 0px;",
+                "top: " + filter.top[0] + ";"
+              );
             } else {
-              parts[1] = parts[1].replace("top: 0px;", "top: " + filter.top + ";");
+              parts[1] = parts[1].replace(
+                "top: 0px;",
+                "top: " + filter.top + ";"
+              );
             }
           }
         }
@@ -574,13 +690,25 @@ class DynamicTagStyler {
       let selector = this.replaceSelectors(parts[0]);
 
       if (rule.selectorText == ".filter") {
-        if (filter.stickyFilter === "mobile" || filter.stickyFilter === "both") {
-          parts[1] = parts[1].replace("position: relative;", "position: sticky;");
+        if (
+          filter.stickyFilter === "mobile" ||
+          filter.stickyFilter === "both"
+        ) {
+          parts[1] = parts[1].replace(
+            "position: relative;",
+            "position: sticky;"
+          );
 
           if (filter.top != null && Array.isArray(filter.top)) {
-            parts[1] = parts[1].replace("top: 0px;", "top: " + filter.top[0] + ";")
+            parts[1] = parts[1].replace(
+              "top: 0px;",
+              "top: " + filter.top[0] + ";"
+            );
           } else {
-            parts[1] = parts[1].replace("top: 0px;", "top: " + filter.top + ";")
+            parts[1] = parts[1].replace(
+              "top: 0px;",
+              "top: " + filter.top + ";"
+            );
           }
         }
       }
@@ -597,14 +725,32 @@ class DynamicTagStyler {
   replaceSelectors(string) {
     let output = string;
 
-    output = output.replace(".filter", this.classListToSelector(this.filterClass));
-    output = output.replace(".filter-input", this.classListToSelector(this.filterInputClass));
-    output = output.replace(".search-box", this.classListToSelector(this.searchBoxClass));
-    output = output.replace(".autocomplete", this.classListToSelector(this.autocompleteClass));
-    output = output.replace(".container", this.classListToSelector(this.containerClass));
+    output = output.replace(
+      ".filter",
+      this.classListToSelector(this.filterClass)
+    );
+    output = output.replace(
+      ".filter-input",
+      this.classListToSelector(this.filterInputClass)
+    );
+    output = output.replace(
+      ".search-box",
+      this.classListToSelector(this.searchBoxClass)
+    );
+    output = output.replace(
+      ".autocomplete",
+      this.classListToSelector(this.autocompleteClass)
+    );
+    output = output.replace(
+      ".container",
+      this.classListToSelector(this.containerClass)
+    );
     output = output.replace(".card", this.classListToSelector(this.cardClass));
     output = output.replace(".tag", this.classListToSelector(this.tagClass));
-    output = output.replace(".active", this.classListToSelector(this.activeTagClass));
+    output = output.replace(
+      ".active",
+      this.classListToSelector(this.activeTagClass)
+    );
 
     return output;
   }
@@ -619,32 +765,79 @@ class DynamicTagStyler {
       stylesheet.insertRule(":root { --tag-color: var(--pastel-blue); }", 1);
       stylesheet.insertRule(":root { --tag-shadow-color: var(--blue); }", 1);
       stylesheet.insertRule(":root { --active-tag-color: var(--blue); }", 1);
-      stylesheet.insertRule(":root { --active-tag-shadow-color: var(--blue); }", 1);
+      stylesheet.insertRule(
+        ":root { --active-tag-shadow-color: var(--blue); }",
+        1
+      );
     } else if (styling.baseTheme == "green") {
       stylesheet.insertRule(":root { --tag-color: var(--pastel-green); }", 1);
       stylesheet.insertRule(":root { --tag-shadow-color: var(--green); }", 1);
       stylesheet.insertRule(":root { --active-tag-color: var(--green); }", 1);
-      stylesheet.insertRule(":root { --active-tag-shadow-color: var(--green); }", 1);
+      stylesheet.insertRule(
+        ":root { --active-tag-shadow-color: var(--green); }",
+        1
+      );
     } else {
       stylesheet.insertRule(":root { --tag-color: var(--pastel-orange); }", 1);
       stylesheet.insertRule(":root { --tag-shadow-color: var(--orange); }", 1);
       stylesheet.insertRule(":root { --active-tag-color: var(--orange); }", 1);
-      stylesheet.insertRule(":root { --active-tag-shadow-color: var(--orange); }", 1);
-
+      stylesheet.insertRule(
+        ":root { --active-tag-shadow-color: var(--orange); }",
+        1
+      );
     }
 
     let colors = styling.colors;
     if (colors) {
-      if (colors.containerColor) stylesheet.insertRule(":root { --container-color: " + colors.containerColor + "; }", 5);
-      if (colors.cardColor) stylesheet.insertRule(":root { --card-color: " + colors.cardColor + "; }", 5);
-      if (colors.tagColor) stylesheet.insertRule(":root { --tag-color: " + colors.tagColor + "; }", 5);
-      if (colors.tagShadowColor) stylesheet.insertRule(":root { --tag-shadow-color: " + colors.tagShadowColor + "; }", 5);
-      if (colors.activeTagColor) stylesheet.insertRule(":root { --active-tag-color: " + colors.activeTagColor + "; }", 5);
-      if (colors.activeTagShadowColor) stylesheet.insertRule(":root { --active-tag-shadow-color: " + colors.activeTagShadowColor + "; }", 5);
-      if (colors.filterInputColor) stylesheet.insertRule(":root { --filter-input-color: " + colors.filterInputColor + "; }", 5);
-      if (colors.filterInputFocusColor) stylesheet.insertRule(":root { --filter-input-focus-color: " + colors.filterInputFocusColor + "; }", 5);
-      if (colors.searchBoxColor) stylesheet.insertRule(":root { --search-box-color: " + colors.searchBoxColor + "; }", 5);
+      if (colors.containerColor)
+        stylesheet.insertRule(
+          ":root { --container-color: " + colors.containerColor + "; }",
+          5
+        );
+      if (colors.cardColor)
+        stylesheet.insertRule(
+          ":root { --card-color: " + colors.cardColor + "; }",
+          5
+        );
+      if (colors.tagColor)
+        stylesheet.insertRule(
+          ":root { --tag-color: " + colors.tagColor + "; }",
+          5
+        );
+      if (colors.tagShadowColor)
+        stylesheet.insertRule(
+          ":root { --tag-shadow-color: " + colors.tagShadowColor + "; }",
+          5
+        );
+      if (colors.activeTagColor)
+        stylesheet.insertRule(
+          ":root { --active-tag-color: " + colors.activeTagColor + "; }",
+          5
+        );
+      if (colors.activeTagShadowColor)
+        stylesheet.insertRule(
+          ":root { --active-tag-shadow-color: " +
+            colors.activeTagShadowColor +
+            "; }",
+          5
+        );
+      if (colors.filterInputColor)
+        stylesheet.insertRule(
+          ":root { --filter-input-color: " + colors.filterInputColor + "; }",
+          5
+        );
+      if (colors.filterInputFocusColor)
+        stylesheet.insertRule(
+          ":root { --filter-input-focus-color: " +
+            colors.filterInputFocusColor +
+            "; }",
+          5
+        );
+      if (colors.searchBoxColor)
+        stylesheet.insertRule(
+          ":root { --search-box-color: " + colors.searchBoxColor + "; }",
+          5
+        );
     }
-
   }
 }
